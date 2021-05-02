@@ -1,25 +1,35 @@
 <template>
-  <div class="container mt-2">
-    <div class="col-3 mx-auto">
-      <div class="d-flex justify-content-center" id="img">
-        <img src="../assets/m3.png" alt="icon" />
-      </div>
-      <form action="">
-        <v-app>
-          <div class="form-group">
-            <v-text-field
-              label="E-mail"
-              @blur="$v.Form.email.$touch()"
-              @input="$v.Form.email.$touch()"
-              v-model.trim="Form.email"
-              required
-              color="cyan darken"
-              :error-messages="emailErrors"
-            ></v-text-field>
-          </div>
+  <v-app>
+    <div class="container" style="margin-top: calc(50vh - 400px)">
+      <div class="col-3 mx-auto">
+        <div
+          class="d-flex justify-content-center align-items-center flex-column text-center"
+          id="img"
+        >
+          <img src="../assets/m3.png" width="350px" alt="icon" />
+          <h3 style="margin-top: -50px; margin-bottom: 30px">
+            Увійти в Messenger
+          </h3>
+        </div>
+        <form action="">
+          <v-text-field
+            label="E-mail"
+            outlined
+            @blur="$v.Form.email.$touch()"
+            @input="$v.Form.email.$touch()"
+            v-model.trim="Form.email"
+            required
+            autofocus
+            color="cyan darken"
+            :error-messages="emailErrors"
+            hide-details="auto"
+          ></v-text-field>
 
           <v-btn
-            elevation="6"
+            elevation="0"
+            block
+            large
+            class="mt-2"
             color="accent"
             :hidden="disabledBtn"
             type="submit"
@@ -27,10 +37,10 @@
           >
             Увійти
           </v-btn>
-        </v-app>
-      </form>
+        </form>
+      </div>
     </div>
-  </div>
+  </v-app>
 </template>
 
 
@@ -91,12 +101,22 @@ export default {
 </script>
 
 
-<style scoped>
+<style>
 form {
   background-color: white;
   padding: 10px;
   border-radius: 10px;
   /*box-shadow: 0px 5px 10px 2px rgba(32, 35, 51, 0.2);*/
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  box-shadow: 0 0 0px 30px #ffffff inset !important;
 }
 
 /* .override .application--wrap { */
