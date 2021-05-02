@@ -1,8 +1,8 @@
 # messenger
 Крутий месенджер, розроблений на JavaScript
 <br><br>
-<b>* Для установки всіх модулів: npm run install</b>
+<b>1) Для установки всіх модулів: <code>npm run install</code></b>
 <br>
-<b>* Для збірки проекту перед коммітом: npm run build</b>
+<b>2) Для збірки проекту перед коммітом: <code>npm run build</code></b>
 <br>
-<b>* Для запуску: npm run start</b>
+<b>3) Для запуску: <code>npm run start</code></b>
