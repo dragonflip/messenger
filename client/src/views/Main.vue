@@ -104,7 +104,6 @@ export default {
 
 .v-icon {
   color: #000000 !important;
-  opacity: 65% !important;
 }
 
 .v-btn:hover {
