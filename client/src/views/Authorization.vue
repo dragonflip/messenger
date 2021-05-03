@@ -1,16 +1,16 @@
 <template>
   <v-app>
-    <div class="container" style="margin-top: calc(50vh - 400px)">
-      <div class="col-3 mx-auto">
+    <div class="container-lg" style="margin-top: calc(50vh - 400px)">
+      <div class="col-4 mx-auto">
         <div
           class="d-flex justify-content-center align-items-center flex-column text-center"
           id="img"
         >
-          <img src="../assets/m3.png" width="350px" alt="icon" />
+          <img src="../assets/m3.png" alt="icon" />
           <h3 style="margin-top: -50px; margin-bottom: 20px">
             Увійдіть в Messenger
           </h3>
-          <h5 v-if="Form.login_code">{{ Form.email }}</h5>
+          <h5 v-if="Form.login_code" class="mb-5">{{ Form.email }}</h5>
         </div>
         <form @submit.prevent="login_submit(Form.login_code)">
           <v-text-field
@@ -42,7 +42,7 @@
           <v-btn
             elevation="0"
             block
-            large
+            x-large
             class="mt-2"
             color="accent"
             :hidden="disabledBtn"
