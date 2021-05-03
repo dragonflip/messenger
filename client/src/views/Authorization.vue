@@ -7,7 +7,7 @@
           id="img"
         >
           <img src="../assets/m3.png" width="350px" alt="icon" />
-          <h3 style="margin-top: -50px; margin-bottom: 30px">
+          <h3 style="margin-top: -50px; margin-bottom: 20px">
             Увійти в Messenger
           </h3>
         </div>
@@ -15,13 +15,13 @@
           <v-text-field
             label="E-mail"
             outlined
-            @blur="$v.Form.email.$touch()"
             @input="$v.Form.email.$touch()"
             v-model.trim="Form.email"
             required
             autofocus
             color="cyan darken"
             :error-messages="emailErrors"
+            placeholder="Введіть E-mail"
             hide-details="auto"
           ></v-text-field>
 
@@ -35,7 +35,7 @@
             type="submit"
             @click="$router.push({ name: 'Main' })"
           >
-            Увійти
+            Продовжити
           </v-btn>
         </form>
       </div>
