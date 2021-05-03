@@ -8,9 +8,18 @@
         >
           <img src="../assets/m3.png" alt="icon" />
           <h3 style="margin-top: -50px; margin-bottom: 20px">
-            Увійдіть в Messenger
+            <span v-if="Form.status === 1">Увійдіть в Messenger</span>
+            <span v-else-if="Form.status === 2 && !Form.need_register"
+              >Вітаємо, {{ Form.email }}</span
+            >
+            <span v-else-if="Form.status === 2 && Form.need_register"
+              >Підтвердження пошти</span
+            >
+            <span v-else-if="Form.status === 3 && Form.need_register"
+              >Вітаємо, як Вас звати?</span
+            >
           </h3>
-          <h5 v-if="Form.status === 2 || Form.status === 3" class="mb-5">
+          <h5 v-if="Form.status === 3 || Form.need_register">
             {{ Form.email }}
           </h5>
         </div>
@@ -43,17 +52,19 @@
             color="cyan darken"
             placeholder="Введіть код підтвердження"
             hide-details="auto"
+            minlength="5"
+            maxlength="5"
           ></v-text-field>
 
           <v-text-field
             v-if="Form.status === 3"
-            label="Імя"
+            label="Ім'я"
             v-model.trim="Form.first_name"
             outlined
             required
             autofocus
             color="cyan darken"
-            placeholder="Введіть імя"
+            placeholder="Введіть ім'я"
             hide-details="auto"
           ></v-text-field>
 
@@ -66,6 +77,7 @@
             color="cyan darken"
             placeholder="Введіть прізвище"
             hide-details="auto"
+            class="mt-2"
           ></v-text-field>
 
           <v-btn
@@ -77,9 +89,12 @@
             :hidden="disabledBtn"
             type="submit"
           >
-            <span v-if="Form.status === 1">Увійти</span>
-            <span v-if="Form.status === 2">Продовжити</span>
-            <span v-if="Form.status === 3">Реєстрація</span>
+            <span v-if="Form.status === 1">Продовжити</span>
+            <span v-if="Form.status === 2 && Form.need_register"
+              >Підтвердити</span
+            >
+            <span v-else-if="Form.status === 2">Увійти</span>
+            <span v-else-if="Form.status === 3">Почати спілкування</span>
           </v-btn>
         </form>
       </div>
@@ -108,6 +123,7 @@ export default {
         status: 1,
         first_name: "",
         last_name: "",
+        need_register: false,
       },
     };
   },
@@ -127,20 +143,21 @@ export default {
 
   methods: {
     login_submitEmail(Email, Status, Code) {
-      if (Email === "pop@gmail.com") {
+      if (Email === "asd@gmail.com") {
         if (this.Form.status === 1) {
           this.Form.status += 1;
-        } else if (Status === 2 && Code === "kol12") {
+        } else if (Status === 2 && Code === "12345") {
           this.$router.push({ name: "Main" });
-        } else if (Status === 2 && Code != "kol12") {
+        } else if (Status === 2 && Code != "12345") {
           alert("Не правильний код");
         }
       } else {
         if (Status === 1) {
           this.Form.status += 1;
-        } else if (Status === 2 && Code === "kol12") {
+          this.Form.need_register = true;
+        } else if (Status === 2 && Code === "12345") {
           this.Form.status += 1;
-        } else if (Status === 2 && Code != "kol12") {
+        } else if (Status === 2 && Code != "12345") {
           alert("Не правильний код");
         } else if (Status === 3) {
           this.$router.push({ name: "Main" });
