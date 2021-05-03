@@ -8,11 +8,13 @@
         >
           <img src="../assets/m3.png" width="350px" alt="icon" />
           <h3 style="margin-top: -50px; margin-bottom: 20px">
-            Увійти в Messenger
+            Увійдіть в Messenger
           </h3>
+          <h5 v-if="Form.login_code">{{ Form.email }}</h5>
         </div>
-        <form action="">
+        <form @submit.prevent="login_submit(Form.login_code)">
           <v-text-field
+            v-if="!Form.login_code"
             label="E-mail"
             outlined
             @input="$v.Form.email.$touch()"
@@ -25,6 +27,18 @@
             hide-details="auto"
           ></v-text-field>
 
+          <v-text-field
+            v-if="Form.login_code"
+            label="Код підтвердження"
+            outlined
+            required
+            autofocus
+            color="cyan darken"
+            :error-messages="emailErrors"
+            placeholder="Введіть код підтвердження"
+            hide-details="auto"
+          ></v-text-field>
+
           <v-btn
             elevation="0"
             block
@@ -33,16 +47,15 @@
             color="accent"
             :hidden="disabledBtn"
             type="submit"
-            @click="$router.push({ name: 'Main' })"
           >
-            Продовжити
+            <span v-if="Form.login_code">Увійти</span>
+            <span v-else>Продовжити</span>
           </v-btn>
         </form>
       </div>
     </div>
   </v-app>
 </template>
-
 
 <script>
 import { email, required, minLength } from "vuelidate/lib/validators";
@@ -55,7 +68,7 @@ export default {
     return {
       Form: {
         email: "",
-        nickname: "",
+        login_code: false,
       },
     };
   },
@@ -74,14 +87,18 @@ export default {
   },
 
   methods: {
-    /*
-    status(validation) {
-      return {
-        "is-invalid": validation.$error,
-        error: validation.$error,
-      };
-      :class="status($v.Form.email)"
-    },*/
+    login_submit(login_code) {
+      if (login_code) {
+        // POST login_code
+        // push main
+
+        this.$router.push({ name: "Main" });
+      } else {
+        this.Form.login_code = true;
+
+        // POST email
+      }
+    },
   },
 
   validations: {
@@ -100,7 +117,6 @@ export default {
 };
 </script>
 
-
 <style>
 form {
   background-color: white;
@@ -118,10 +134,6 @@ select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
   box-shadow: 0 0 0px 30px #ffffff inset !important;
 }
-
-/* .override .application--wrap { */
-/* min-height: 1vh !important; */
-/* } */
 
 /* .md-theme-default { */
 /* overflow-y: auto; */
