@@ -54,6 +54,11 @@
             hide-details="auto"
             minlength="5"
             maxlength="5"
+            :rules="rule"
+            class="input-group--focused"
+            :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
+            :type="show ? 'text' : 'password'"
+            @click:append="show = !show"
           ></v-text-field>
 
           <v-text-field
@@ -79,6 +84,25 @@
             hide-details="auto"
             class="mt-2"
           ></v-text-field>
+
+          <v-file-input
+            type="file"
+            v-if="Form.status === 3"
+            v-model="avatar"
+            :rules="rules"
+            outlined
+            required
+            class="mt-2"
+            accept="image/png, image/jpeg, image/bmp"
+            placeholder="Виберіть аватарку"
+            prepend-icon="mdi-camera"
+            label="Аватар"
+            @change="onFileChange($event)"
+          ></v-file-input>
+
+          <v-avatar size="150" v-if="url" class="ml-15">
+            <img :src="url" alt="Admin" />
+          </v-avatar>
 
           <v-btn
             elevation="0"
@@ -118,6 +142,7 @@ export default {
   data() {
     return {
       Form: {
+        avatar: null,
         email: "",
         login_code: "",
         status: 1,
@@ -125,10 +150,29 @@ export default {
         last_name: "",
         need_register: false,
       },
+      show: false,
+      rules: [
+        (value) =>
+          !value ||
+          value.size < 2000000 ||
+          "Розмір аватарки має бути менше 2 MB!",
+      ],
+
+      url: null,
+      code: "12345",
     };
   },
 
   computed: {
+    rule() {
+      const rules = [];
+      if (this.code) {
+        const rul = (v) =>
+          (!!v && v) === this.code || "Ввели не правильний код підтвердження";
+        rules.push(rul);
+      }
+      return rules;
+    },
     disabledBtn() {
       return this.$v.Form.email.$invalid;
     },
@@ -149,7 +193,7 @@ export default {
         } else if (Status === 2 && Code === "12345") {
           this.$router.push({ name: "Main" });
         } else if (Status === 2 && Code != "12345") {
-          alert("Не правильний код");
+          //alert("Не правильний код");
         }
       } else {
         if (Status === 1) {
@@ -158,12 +202,17 @@ export default {
         } else if (Status === 2 && Code === "12345") {
           this.Form.status += 1;
         } else if (Status === 2 && Code != "12345") {
-          alert("Не правильний код");
+          //alert("Не правильний код");
         } else if (Status === 3) {
           this.$router.push({ name: "Main" });
         }
         // POST email
       }
+    },
+
+    onFileChange(e) {
+      const file = e;
+      this.url = URL.createObjectURL(file);
     },
   },
 
