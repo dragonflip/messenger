@@ -23,11 +23,21 @@
 
             <div v-for="user in usersList" :key="user.id">
               <div class="Mblock">
-                <div>
-                  <img class="PIMG" src="../assets/m2.png" alt="avatar" />
+                <div
+                  class="d-flex align-items-center"
+                  style="grid-column: 1/1; grid-row-start: 1; grid-row-end: 3"
+                >
+                  <img
+                    class="PIMG"
+                    src="../assets/m2.png"
+                    width="55px"
+                    alt="avatar"
+                  />
                 </div>
-                <div class="PNAME">{{ user.name }}</div>
-                <div class="PTIME">{{ user.time }}</div>
+                <div class="PNAME" align="left">
+                  {{ user.name }}
+                </div>
+                <div class="PTIME d-flex justify-end">{{ user.time }}</div>
                 <div class="PMES">{{ user.message }}</div>
               </div>
             </div>
@@ -110,13 +120,16 @@ export default {
 }
 
 .PNAME {
-  font-size: 18px;
-  white-space: nowrap;
-  overflow-x: hidden;
-  text-overflow: ellipsis;
-  grid-area: PNAME;
-  margin-left: 10px;
-  margin-top: 5px;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: flex-end;
+  grid-column: 2/2;
+  // white-space: nowrap;
+  // overflow-x: hidden;
+  // text-overflow: ellipsis;
+  // grid-area: PNAME;
+  // margin-top: 5px;
 }
 
 .ls {
@@ -124,39 +137,44 @@ export default {
 }
 
 .PTIME {
-  font-size: 1rem;
-  grid-area: PTIME;
-  margin-top: 5px;
+  font-size: 14px;
+  // grid-area: PTIME;
+  // margin-top: 5px;
+  grid-column: 3/3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
 }
 
 .PMES {
-  padding-left: 5px;
-  white-space: nowrap;
-  overflow-x: hidden;
-  text-overflow: ellipsis;
-  grid-area: PMES;
+  // padding-left: 5px;
+  // white-space: nowrap;
+  // overflow-x: hidden;
+  // text-overflow: ellipsis;
+  // grid-area: PMES;
+  grid-column: 2/2;
 }
 
 .PIMG {
   border-radius: 100%;
   background-color: #424242;
-  margin-top: 10px;
-  height: 45px;
-  grid-area: PIMG;
+  // margin-top: 10px;
+  // height: 45px;
+  // grid-area: PIMG;
 }
 
 .Mblock {
   display: grid;
   grid-gap: 1px;
-  grid-template-areas:
-    "PIMG PIMG PNAME PNAME PNAME PTIME"
-    "PIMG PIMG PMES PMES PMES PMES"
-    "PIMG PIMG PMES PMES PMES PMES";
+  // grid-template-areas:
+  // "PIMG PNAME PNAME PNAME PNAME PTIME"
+  // "PIMG PMES PMES PMES PMES PMES"
+  // "PIMG PMES PMES PMES PMES PMES";
+  grid-template-columns: 60px auto 45px;
   background-color: #e0e0e0;
-  height: 87px;
-  width: 100%;
   border-radius: 10px;
-  padding: 5px;
+  padding: 15px 20px;
+  margin: 10px 0 10px 0;
 }
 
 .Mblock:hover {
