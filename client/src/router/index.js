@@ -1,39 +1,28 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-//import Home from '../views/Home.vue'
-import Authorization from '../views/Authorization.vue'
-import Main from '../views/Main.vue'
+import Vue from "vue";
+import VueRouter from "vue-router";
 
-Vue.use(Router)
+import Main from "../views/Main.vue";
+import Login from "../views/Login.vue";
 
-export default new Router({
-    mode: 'history',
-    base: process.env.BASE_URL,
-    routes: [
-        /*
-        {
-            path: '/home',
-            name: 'home',
-            component: Home
-        },
-        {
-            path: '/category',
-            name: 'category',
-            component: () => { return import ('../views/Category.vue') }
-        },*/
+Vue.use(VueRouter);
 
-        {
-            path: '/',
-            name: 'Authorization',
-            component: Authorization
-        },
+const routes = [
+  {
+    path: "/",
+    name: "Main",
+    component: Main,
+  },
+  {
+    path: "/login",
+    name: "Login",
+    component: Login,
+  },
+];
 
-        {
-            path: '/main',
-            name: 'Main',
-            component: Main
-        },
+const router = new VueRouter({
+  mode: "history",
+  base: process.env.BASE_URL,
+  routes,
+});
 
-    ]
-})
-
+export default router;

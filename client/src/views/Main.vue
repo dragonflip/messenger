@@ -1,213 +1,151 @@
 <template>
-  <v-app>
-    <div class="container-lg">
-      <div class="row no-gutters">
-        <div class="col-4 no-gutters ls">
-          <div>
-            <v-app-bar color="grey lighten-2" dense dark>
-              <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
+  <div class="container" style="height: 100vh">
+    <div class="row flex-column h-100">
+      <div class="nav_bar d-flex" style="border-bottom: 1px solid #dfe1e5">
+        <v-app-bar elevation="0" color="white">
+          <v-app-bar-nav-icon></v-app-bar-nav-icon>
 
-              <!--v-toolbar-title>Page title</-v-toolbar-title-->
-
-              <v-spacer></v-spacer>
-
-              <v-tooltip left>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn icon v-bind="attrs" v-on="on">
-                    <v-icon>mdi-magnify</v-icon>
-                  </v-btn>
-                </template>
-                <span>Пошук</span>
-              </v-tooltip>
-            </v-app-bar>
-
-            <div v-for="user in usersList" :key="user.id">
-              <div class="Mblock">
-                <div
-                  class="d-flex align-items-center"
-                  style="grid-column: 1/1; grid-row-start: 1; grid-row-end: 3"
+          <v-toolbar-title>Messenger</v-toolbar-title>
+        </v-app-bar>
+      </div>
+      <div class="chats_wrapper d-flex" style="flex: 1">
+        <v-list class="col-lg-4 chats p-0">
+          <v-list-item-group mandatory>
+            <v-list-item class="chat d-flex">
+              <div class="photo">
+                <v-avatar color="accent" size="55"
+                  ><span class="white--text">І М</span></v-avatar
                 >
-                  <img
-                    class="PIMG"
-                    src="../assets/m2.png"
-                    width="55px"
-                    alt="avatar"
-                  />
-                </div>
-                <div class="PNAME" align="left">
-                  {{ user.name }}
-                </div>
-                <div class="PTIME d-flex justify-end">{{ user.time }}</div>
-                <div class="PMES">{{ user.message }}</div>
               </div>
-            </div>
-
-            <v-navigation-drawer
-              v-model="drawer"
-              absolute
-              temporary
-              color="grey lighten-3"
-            >
-              <v-list nav dense>
-                <v-list-item-group
-                  v-model="group"
-                  active-class="grey lighten-1"
+              <div class="message-details w-100">
+                <div class="message-title d-flex justify-space-between">
+                  <div class="name">Ігор Модняк</div>
+                  <div class="time">20:17</div>
+                </div>
+                <div class="message-subtitle d-flex">
+                  <div class="message">
+                    Куку, пишу тобі тестове повідомлення
+                  </div>
+                </div>
+              </div>
+            </v-list-item>
+            <v-list-item class="chat d-flex">
+              <div class="photo">
+                <v-avatar color="#ff695d" size="55"
+                  ><span class="white--text">В К</span></v-avatar
                 >
-                  <v-list-item>
-                    <v-list-item-icon>
-                      <v-icon>mdi-home</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>Home</v-list-item-title>
-                  </v-list-item>
-
-                  <v-list-item color="">
-                    <v-list-item-icon>
-                      <v-icon>mdi-account</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>Account</v-list-item-title>
-                  </v-list-item>
-                </v-list-item-group>
-              </v-list>
-            </v-navigation-drawer>
+              </div>
+              <div class="message-details w-100">
+                <div class="message-title d-flex justify-space-between">
+                  <div class="name">Василь Крутий</div>
+                  <div class="time">01:07</div>
+                </div>
+                <div class="message-subtitle d-flex">
+                  <div class="message">Ого, маєш крутий месенджер</div>
+                </div>
+              </div>
+            </v-list-item>
+            <v-list-item class="chat d-flex">
+              <div class="photo">
+                <v-avatar color="#b882ff" size="55"
+                  ><span class="white--text">П Л</span></v-avatar
+                >
+              </div>
+              <div class="message-details w-100">
+                <div class="message-title d-flex justify-space-between">
+                  <div class="name">Петро Лапас</div>
+                  <div class="time">06.05.2021</div>
+                </div>
+                <div class="message-subtitle d-flex">
+                  <div class="message">Пишу, чисто по приколу</div>
+                </div>
+              </div>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+        <div
+          class="col-lg-8 d-flex align-items-end justify-content-center"
+          style="background: #f5f5f5"
+        >
+          <div class="messages"></div>
+          <div class="send_message w-100 mb-5 d-flex">
+            <v-form class="d-flex w-100">
+              <v-text-field
+                type="text"
+                label="Повідомлення"
+                required
+                autofocus
+                hide-details="auto"
+                autocomplete="false"
+                class="ml-5"
+              ></v-text-field>
+              <v-btn
+                x-large
+                elevation="0"
+                class="ml-1 align-self-end"
+                style="height: 55px; width: 60px; min-width: auto"
+              >
+                <v-icon color="primary">mdi-send</v-icon>
+              </v-btn>
+            </v-form>
           </div>
-        </div>
-
-        <div class="col-8 no-gutters">
-          <div class="right-side" style="background: #cacaca"></div>
+          <!-- <h3 class="text-muted">Оберіть чат для спілкування</h3> -->
         </div>
       </div>
     </div>
-  </v-app>
+  </div>
 </template>
 
 <script>
 export default {
-  data: () => ({
-    drawer: false,
-    group: null,
-
-    usersList: [
-      {
-        name: "Ivan",
-        time: "19:32",
-        message: "Hellow How are U",
-      },
-      {
-        name: "Vasia",
-        time: "10:32",
-        message: "KKKKKKKKkfbew,fvrwe f rewf",
-      },
-      {
-        name: "KKK",
-        time: "11:32",
-        message: "lol",
-      },
-    ],
-  }),
-
-  computed: {},
-
-  methods: {},
+  name: "Main",
+  data() {
+    return {};
+  },
+  mounted() {
+    if (!localStorage.login) {
+      this.$router.push("/login");
+    }
+  },
 };
 </script>
 
-
-<style lang="scss" scoped>
-.left-side,
-.right-side {
-  height: 100vh;
-  width: 100%;
+<style scoped>
+.container {
+  border-left: 1px solid #dfe1e5;
+  border-right: 1px solid #dfe1e5;
 }
 
-.PNAME {
-  font-size: 16px;
+.chats {
+  /* background: #ddd; */
+  border-right: 1px solid #dfe1e5 !important;
+}
+
+.chat {
+  padding: 10px !important;
+}
+
+.chat .photo {
+  /* width: 60px; */
+  margin-right: 10px;
+}
+
+.chat .photo img {
+  width: 55px;
+}
+
+.chat .name {
+  /* width: 100px; */
   font-weight: 700;
-  display: flex;
-  align-items: flex-end;
-  grid-column: 2/2;
-  // white-space: nowrap;
-  // overflow-x: hidden;
-  // text-overflow: ellipsis;
-  // grid-area: PNAME;
-  // margin-top: 5px;
 }
 
-.ls {
-  background-color: #e0e0e0;
+.chat .message {
+  overflow: hidden;
+  height: 24px;
+  font-size: 15px;
 }
 
-.PTIME {
-  font-size: 14px;
-  // grid-area: PTIME;
-  // margin-top: 5px;
-  grid-column: 3/3;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-}
-
-.PMES {
-  // padding-left: 5px;
-  // white-space: nowrap;
-  // overflow-x: hidden;
-  // text-overflow: ellipsis;
-  // grid-area: PMES;
-  grid-column: 2/2;
-}
-
-.PIMG {
-  border-radius: 100%;
-  background-color: #424242;
-  // margin-top: 10px;
-  // height: 45px;
-  // grid-area: PIMG;
-}
-
-.Mblock {
-  display: grid;
-  grid-gap: 1px;
-  // grid-template-areas:
-  // "PIMG PNAME PNAME PNAME PNAME PTIME"
-  // "PIMG PMES PMES PMES PMES PMES"
-  // "PIMG PMES PMES PMES PMES PMES";
-  grid-template-columns: 60px auto 45px;
-  background-color: #e0e0e0;
-  border-radius: 10px;
-  padding: 15px 20px;
-  margin: 10px 0 10px 0;
-}
-
-.Mblock:hover {
-  cursor: pointer;
-  background-color: #bdbdbd;
-}
-
-.Mblock.active {
-  background-color: #fff8e1;
-}
-
-.v-icon {
-  color: #000000 !important;
-}
-
-.v-btn:hover {
-  background-color: #bdbdbd;
-}
-
-.left-side {
-  background-color: #f5f5f5;
-}
-
-.navb {
-  background-color: #303434;
-  height: 8.5vh;
-}
-
-.v-list-item-title {
-  color: red !important;
-}
-
-.right-side {
-  background-color: #ffffff;
+.chat .time {
+  font-size: 13px;
 }
 </style>
