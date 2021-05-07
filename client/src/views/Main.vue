@@ -2,11 +2,28 @@
   <div class="container" style="height: 100vh">
     <div class="row flex-column h-100">
       <div class="nav_bar d-flex" style="border-bottom: 1px solid #dfe1e5">
-        <v-app-bar elevation="0" color="white">
-          <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        <div class="col-lg-4 p-0" style="border-right: 1px solid #dfe1e5">
+          <v-app-bar elevation="0" color="white">
+            <!-- <div class="col-lg-4 p-0"> -->
+            <v-app-bar-nav-icon></v-app-bar-nav-icon>
 
-          <v-toolbar-title>Messenger</v-toolbar-title>
-        </v-app-bar>
+            <v-toolbar-title>Messenger</v-toolbar-title>
+            <!-- </div> -->
+          </v-app-bar>
+        </div>
+        <div class="col-lg-8 p-0">
+          <v-app-bar elevation="0" color="white">
+            <!-- <div class="col-lg-4 p-0"> -->
+            <v-avatar color="accent" size="50"
+              ><span class="white--text">І М</span></v-avatar
+            >
+
+            <h5 class="ml-2 mb-0 d-flex flex-column">
+              Ігор Модняк
+              <span class="green--text" style="font-size: 60%">Online</span>
+            </h5>
+          </v-app-bar>
+        </div>
       </div>
       <div class="chats_wrapper d-flex" style="flex: 1">
         <v-list class="col-lg-4 chats p-0">
@@ -64,10 +81,14 @@
           </v-list-item-group>
         </v-list>
         <div
-          class="col-lg-8 d-flex align-items-end justify-content-center"
-          style="background: #f5f5f5"
+          class="col-lg-8 d-flex justify-content-end flex-column messages_wrapper"
         >
-          <div class="messages"></div>
+          <div class="messages d-flex flex-column px-5 mb-5">
+            <div class="to">Дивися шо умію</div>
+            <div class="from">Нє, ну ти крутий кнш</div>
+            <div class="from">Ніц не скажеш</div>
+            <div class="to">Крутий мужик😎</div>
+          </div>
           <div class="send_message w-100 mb-5 d-flex">
             <v-form class="d-flex w-100">
               <v-text-field
@@ -82,6 +103,7 @@
               <v-btn
                 x-large
                 elevation="0"
+                color="white"
                 class="ml-1 align-self-end"
                 style="height: 55px; width: 60px; min-width: auto"
               >
@@ -147,5 +169,23 @@ export default {
 
 .chat .time {
   font-size: 13px;
+}
+
+.messages .to {
+  background: #1976d2;
+  color: #fff;
+  padding: 5px 12px;
+  border-radius: 15px;
+  margin-top: 10px;
+  align-self: flex-end;
+}
+
+.messages .from {
+  background: #eee;
+  color: #000;
+  padding: 5px 12px;
+  border-radius: 15px;
+  margin-top: 10px;
+  align-self: flex-start;
 }
 </style>

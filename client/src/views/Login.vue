@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container-lg">
     <div
       class="col-lg-4 mx-auto d-flex align-items-center justify-content-center flex-column"
       style="height: 100vh"
