@@ -158,11 +158,11 @@ export default {
             login_code: this.form.code,
           }),
         });
-        const data = await res.json(); // OK (true | false)
+        const data = await res.json(); // token ("..." | null)
 
         console.log(data);
 
-        if (data.ok) {
+        if (data.token !== null) {
           this.codeError = "";
 
           if (this.needRegister) {
@@ -171,7 +171,7 @@ export default {
             this.okLogin = true;
 
             setTimeout(() => {
-              localStorage.login = true;
+              localStorage.login = data.token;
               this.$router.push("/");
             }, 1000);
           }
@@ -180,12 +180,29 @@ export default {
         }
       } // Registration
       else if (this.formStep === 3) {
-        this.okLogin = true;
+        const res = await fetch("/api/signUp", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: this.form.email,
+            login_code: this.form.code,
+            firstname: this.form.firstname,
+            lastname: this.form.lastname,
+          }),
+        });
+        const data = await res.json(); // token ("..." | null)
+        console.log(data);
 
-        setTimeout(() => {
-          localStorage.login = true;
-          this.$router.push("/");
-        }, 1000);
+        if (data.token !== null) {
+          this.okLogin = true;
+
+          setTimeout(() => {
+            localStorage.login = data.token;
+            this.$router.push("/");
+          }, 1000);
+        }
       }
     },
   },
