@@ -31,7 +31,7 @@
             type="email"
             label="E-mail"
             name="email"
-            v-model="form.email"
+            v-model.trim="form.email"
             outlined
             required
             autofocus
@@ -41,11 +41,11 @@
 
           <v-text-field
             v-if="formStep === 2"
-            :error-messages="codeError"
+            :error-messages="loginCodeError"
             type="text"
             label="Код підтвердження"
             name="login_code"
-            v-model="form.code"
+            v-model.trim="form.login_code"
             outlined
             required
             autofocus
@@ -61,7 +61,7 @@
             type="text"
             label="Ім'я"
             name="firstname"
-            v-model="form.firstname"
+            v-model.trim="form.firstname"
             outlined
             required
             autofocus
@@ -76,7 +76,7 @@
             type="text"
             label="Прізвище (не обов'язково)"
             name="lastname"
-            v-model="form.lastname"
+            v-model.trim="form.lastname"
             outlined
             placeholder="Введіть прізвище"
             hide-details="auto"
@@ -120,13 +120,13 @@ export default {
     return {
       form: {
         email: "",
-        code: "",
+        login_code: "",
         firstname: "",
         lastname: "",
       },
       formStep: 1,
       needRegister: false,
-      codeError: "",
+      loginCodeError: "",
       okLogin: false,
     };
   },
@@ -155,7 +155,7 @@ export default {
           },
           body: JSON.stringify({
             email: this.form.email,
-            login_code: this.form.code,
+            login_code: this.form.login_code,
           }),
         });
         const data = await res.json(); // token ("..." | null)
@@ -163,7 +163,7 @@ export default {
         console.log(data);
 
         if (data.token !== null) {
-          this.codeError = "";
+          this.loginCodeError = "";
 
           if (this.needRegister) {
             this.formStep++;
@@ -176,7 +176,7 @@ export default {
             }, 1000);
           }
         } else {
-          this.codeError = "Не правильний код підтвердження";
+          this.loginCodeError = "Не правильний код підтвердження";
         }
       } // Registration
       else if (this.formStep === 3) {
@@ -187,7 +187,7 @@ export default {
           },
           body: JSON.stringify({
             email: this.form.email,
-            login_code: this.form.code,
+            login_code: this.form.login_code,
             firstname: this.form.firstname,
             lastname: this.form.lastname,
           }),

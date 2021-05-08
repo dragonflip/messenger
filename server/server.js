@@ -14,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/chats", require("./routes/chats"));
 app.use("/api/sendCode", require("./routes/sendCode"));
 app.use("/api/signIn", require("./routes/signIn"));
+app.use("/api/signUp", require("./routes/signUp"));
 
 io.on("connection", () => {
   console.log("io connection established");
