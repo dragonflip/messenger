@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api/chats", require("./routes/chats"));
 app.use("/api/sendCode", require("./routes/sendCode"));
-// app.use("/api/signIn", require("./routes/signIn"));
+app.use("/api/signIn", require("./routes/signIn"));
 
 io.on("connection", () => {
   console.log("io connection established");
