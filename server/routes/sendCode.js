@@ -30,7 +30,7 @@ router.post("/", async (req, res) => {
 
   //let step = req.body.formStep;
 
-  // let Code = randomNumber(10000, 99999);
+  let Code = randomNumber(10000, 99999);
 
   // transporter.sendMail({
   //   to: req.body.email,

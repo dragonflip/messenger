@@ -134,7 +134,7 @@ export default {
     async emailForm() {
       // Enter email
       if (this.formStep === 1) {
-        const res = await fetch("/api/login", {
+        const res = await fetch("/api/sendCode", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -148,18 +148,21 @@ export default {
       }
       // Enter login code
       else if (this.formStep === 2) {
-        const res = await fetch("/api/login", {
+        const res = await fetch("/api/signIn", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email: this.email, login_code: this.code }),
+          body: JSON.stringify({
+            email: this.form.email,
+            login_code: this.form.code,
+          }),
         });
         const data = await res.json(); // OK (true | false)
 
         console.log(data);
 
-        if (res.ok) {
+        if (data.ok) {
           this.codeError = "";
 
           if (this.needRegister) {
