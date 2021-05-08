@@ -25,11 +25,12 @@
           >
         </p>
 
-        <form @submit.prevent="emailForm()">
+        <form @submit.prevent="emailForm">
           <v-text-field
             v-if="formStep === 1"
             type="email"
             label="E-mail"
+            name="email"
             v-model="form.email"
             outlined
             required
@@ -43,6 +44,7 @@
             :error-messages="codeError"
             type="text"
             label="Код підтвердження"
+            name="login_code"
             v-model="form.code"
             outlined
             required
@@ -51,13 +53,14 @@
             hide-details="auto"
             minlength="5"
             maxlength="5"
-            autocomplete="false"
+            autocomplete="off"
           ></v-text-field>
 
           <v-text-field
             v-if="formStep === 3"
             type="text"
             label="Ім'я"
+            name="firstname"
             v-model="form.firstname"
             outlined
             required
@@ -71,10 +74,10 @@
           <v-text-field
             v-if="formStep === 3"
             type="text"
-            label="Прізвище"
+            label="Прізвище (не обов'язково)"
+            name="lastname"
             v-model="form.lastname"
             outlined
-            required
             placeholder="Введіть прізвище"
             hide-details="auto"
             minlength="2"
@@ -89,13 +92,14 @@
             class="mt-2"
             color="primary"
             type="submit"
+            :loading="okLogin"
           >
-            <v-progress-circular
+            <!-- <v-progress-circular
               v-if="okLogin"
               color="white"
               indeterminate
               class="mr-1"
-            ></v-progress-circular>
+            ></v-progress-circular> -->
 
             <span v-if="formStep === 1 || (formStep === 2 && needRegister)"
               >Продовжити</span
