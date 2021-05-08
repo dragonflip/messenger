@@ -12,17 +12,16 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/chats", require("./routes/chats"));
-app.use("/api/auth", require("./routes/auth"));
+app.use("/api/login", require("./routes/login"));
 
-io.on("connection", () =>{
-  console.log("io connection established")
-})
+io.on("connection", () => {
+  console.log("io connection established");
+});
 
 // SPA
 app.get("*", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
-
 
 // Start server
 server.listen(5000, () => {

@@ -131,20 +131,35 @@ export default {
     };
   },
   methods: {
-    emailForm() {
-      // FETCH (EMAIL)
-      // -> response
-
+    async emailForm() {
       // Enter email
       if (this.formStep === 1) {
-        if (this.form.email != "asd@gmail.com") {
-          this.needRegister = true;
-        }
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: this.form.email }),
+        });
+        const data = await res.json(); // need register (true | false)
 
+        this.needRegister = data.need_register;
         this.formStep++;
-      } // Enter login code
+      }
+      // Enter login code
       else if (this.formStep === 2) {
-        if (this.form.code == "12345") {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: this.email, login_code: this.code }),
+        });
+        const data = await res.json(); // OK (true | false)
+
+        console.log(data);
+
+        if (res.ok) {
           this.codeError = "";
 
           if (this.needRegister) {
@@ -170,6 +185,11 @@ export default {
         }, 1000);
       }
     },
+  },
+  mounted() {
+    if (localStorage.login) {
+      this.$router.push("/");
+    }
   },
 };
 </script>

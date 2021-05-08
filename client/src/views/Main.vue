@@ -89,31 +89,12 @@
           <h4>2 сторінка</h4>
         </v-window-item>
       </v-window> -->
-      <!-- <v-navigation-drawer v-model="drawer" absolute temporary>
-        <v-list>
-          <v-list-item-group active-class="deep-purple--text text--accent-4">
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-home</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>Home</v-list-item-title>
-            </v-list-item>
-
-            <v-list-item>
-              <v-list-item-icon>
-                <v-icon>mdi-account</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>Account</v-list-item-title>
-            </v-list-item>
-          </v-list-item-group>
-        </v-list>
-      </v-navigation-drawer> -->
 
       <div class="col-lg-4 p-0">
         <div class="nav_bar d-flex">
           <v-menu offset-y min-width="300">
             <template v-slot:activator="{ on }">
-              <v-app-bar flat color="white">
+              <v-app-bar flat color="white" height="64">
                 <v-app-bar-nav-icon
                   @click="menu = !menu"
                   v-on="on"
@@ -817,6 +798,8 @@ export default {
     if (!localStorage.login) {
       this.$router.push("/login");
     }
+
+    console.log(this.$vuetify.breakpoint.mdAndDown);
 
     setTimeout(() => {
       this.loading = false;
