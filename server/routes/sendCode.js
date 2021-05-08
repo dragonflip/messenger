@@ -34,9 +34,11 @@ router.post("/", async (req, res) => {
   });
 
   if (result.length > 0) {
-    await db.query(
-      `UPDATE users SET login_code = '${Code}' WHERE id = ${result[0].id}`
-    );
+    let user = {
+    email: req.body.email,
+    login_code: Code,
+  };
+  await db.query("INSERT INTO login_codes set ?", user);
 
     res.json({ need_register: false });
   } else {
