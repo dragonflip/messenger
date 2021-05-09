@@ -18,6 +18,7 @@ app.use("/api/signIn", require("./routes/signIn"));
 app.use("/api/signUp", require("./routes/signUp"));
 app.use("/api/getProfile", require("./routes/getProfile"));
 app.use("/api/getUserID", require("./routes/getUserID"));
+app.use("/api/getUserID", require("./routes/editProfile"));
 
 io.on("connection", () => {
   console.log("io connection established");
