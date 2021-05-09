@@ -876,7 +876,7 @@ export default {
   },
   methods: {
     logout: function () {
-      localStorage.removeItem("login");
+      localStorage.removeItem("token");
 
       this.loading = true;
 
