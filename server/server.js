@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use("/api/chats", require("./routes/chats"));
+app.use("/api/getChats", require("./routes/getChats"));
 app.use("/api/sendCode", require("./routes/sendCode"));
 app.use("/api/signIn", require("./routes/signIn"));
 app.use("/api/signUp", require("./routes/signUp"));
