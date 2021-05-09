@@ -41,7 +41,7 @@
           />
 
           <h5 class="text-center mt-2">
-            Петя Петросян
+            {{ profile.firstname }} {{ profile.lastname }}
             <h6 class="green--text mt-1">Online</h6>
           </h5>
 
@@ -55,7 +55,7 @@
                 <v-list-item-subtitle>Ім'я та прізвище</v-list-item-subtitle>
                 <v-list-item-title class="d-flex align-items-center">
                   <v-icon class="mr-2">mdi-account-outline</v-icon>
-                  Петя Петросян
+                  {{ profile.firstname }} {{ profile.lastname }}
                 </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
@@ -64,7 +64,7 @@
                 <v-list-item-subtitle>Email</v-list-item-subtitle>
                 <v-list-item-title class="d-flex align-items-center">
                   <v-icon class="mr-2">mdi-email-outline</v-icon>
-                  asd@gmail.com
+                  {{ profile.email }}
                 </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
@@ -73,7 +73,7 @@
                 <v-list-item-subtitle>Про себе</v-list-item-subtitle>
                 <v-list-item-title class="d-flex align-items-center">
                   <v-icon class="mr-2">mdi-information-outline</v-icon>
-                  Люблю сміятися і спати
+                  {{ profile.bio }}
                 </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
@@ -780,6 +780,7 @@ export default {
       loading: true,
       clicked: false,
       dialog: false,
+      profile: {},
     };
   },
   methods: {
@@ -794,7 +795,7 @@ export default {
       }, 1000);
     },
   },
-  mounted() {
+  async mounted() {
     if (!localStorage.login) {
       this.$router.push("/login");
     }
@@ -804,6 +805,11 @@ export default {
     setTimeout(() => {
       this.loading = false;
     }, 2000);
+
+    const res = await fetch("/api/getProfile/6");
+    const data = await res.json();
+
+    this.profile = data;
   },
   watch: {
     chat_id: function (value) {
