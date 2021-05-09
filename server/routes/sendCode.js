@@ -25,11 +25,11 @@ router.post("/", async (req, res) => {
 
   let Code = randomNumber(10000, 99999);
 
-  transporter.sendMail({
-    to: req.body.email,
-    subject: "Підтвердження входу в обліковий запис",
-    text: `Доброго дня. Ваш код підтвердження входу в обліковий запис: ${Code}`,
-  });
+  // transporter.sendMail({
+  //   to: req.body.email,
+  //   subject: "Підтвердження входу в обліковий запис",
+  //   text: `Доброго дня. Ваш код підтвердження входу в обліковий запис: ${Code}`,
+  // });
 
   let user = {
     email: req.body.email,

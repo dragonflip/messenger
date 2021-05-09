@@ -11,9 +11,14 @@ router.post("/", async (req, res) => {
   );
 
   if (result.length > 0) {
-    await db.query(`DELETE FROM login_codes WHERE email = "${req.body.email}"`);
+    const token = crypto.randomBytes(32).toString("hex");
 
-    res.json({ token: crypto.randomBytes(32).toString("hex") });
+    await db.query(`DELETE FROM login_codes WHERE email = "${req.body.email}"`);
+    await db.query(
+      `UPDATE users SET token = "${token}" WHERE email = "${req.body.email}"`
+    );
+
+    res.json({ token });
   } else {
     res.json({ token: null });
   }

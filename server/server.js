@@ -12,12 +12,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/getChats", require("./routes/getChats"));
-app.use("/api/getMessages", require("./routes/getMessages"));
+// app.use("/api/getMessages", require("./routes/getMessages"));
 app.use("/api/sendCode", require("./routes/sendCode"));
 app.use("/api/signIn", require("./routes/signIn"));
 app.use("/api/signUp", require("./routes/signUp"));
 app.use("/api/getProfile", require("./routes/getProfile"));
-app.use("/api/getUserId", require("./routes/getUserId"));
+app.use("/api/getUserID", require("./routes/getUserID"));
 
 io.on("connection", () => {
   console.log("io connection established");

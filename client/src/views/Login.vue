@@ -171,7 +171,7 @@ export default {
             this.okLogin = true;
 
             setTimeout(() => {
-              localStorage.login = data.token;
+              localStorage.token = data.token;
               this.$router.push("/");
             }, 1000);
           }
@@ -199,7 +199,7 @@ export default {
           this.okLogin = true;
 
           setTimeout(() => {
-            localStorage.login = data.token;
+            localStorage.token = data.token;
             this.$router.push("/");
           }, 1000);
         }
@@ -207,7 +207,7 @@ export default {
     },
   },
   mounted() {
-    if (localStorage.login) {
+    if (localStorage.token) {
       this.$router.push("/");
     }
   },

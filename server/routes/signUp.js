@@ -2,10 +2,10 @@ const { Router } = require("express");
 const router = Router();
 const db = require("../config/db");
 
+const crypto = require("crypto");
 require("dotenv").config();
 
 router.post("/", async (req, res) => {
-  var crypto = require("crypto");
   let user = {
     email: req.body.email,
     firstname: req.body.firstname,

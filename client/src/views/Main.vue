@@ -73,7 +73,8 @@
                 <v-list-item-subtitle>Про себе</v-list-item-subtitle>
                 <v-list-item-title class="d-flex align-items-center">
                   <v-icon class="mr-2">mdi-information-outline</v-icon>
-                  {{ profile.bio }}
+                  <span v-if="profile.bio"></span>
+                  <span class="text-muted" v-else>Напишіть про себе</span>
                 </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
@@ -781,6 +782,7 @@ export default {
       clicked: false,
       dialog: false,
       profile: {},
+      user_id: null,
     };
   },
   methods: {
@@ -796,20 +798,29 @@ export default {
     },
   },
   async mounted() {
-    if (!localStorage.login) {
+    if (!localStorage.token) {
       this.$router.push("/login");
     }
 
     console.log(this.$vuetify.breakpoint.mdAndDown);
 
-    setTimeout(() => {
-      this.loading = false;
-    }, 2000);
-
-    const res = await fetch("/api/getProfile/6");
+    let res = await fetch(`/api/getUserID/${localStorage.token}`);
     const data = await res.json();
+    this.user_id = data.id;
 
-    this.profile = data;
+    if (this.user_id !== null) {
+      this.loading = true;
+
+      let res = await fetch(`/api/getProfile/${this.user_id}`);
+      this.profile = await res.json();
+    } else {
+      this.loading = true;
+
+      localStorage.removeItem("token");
+      this.$router.push("/login");
+    }
+
+    this.loading = false;
   },
   watch: {
     chat_id: function (value) {
