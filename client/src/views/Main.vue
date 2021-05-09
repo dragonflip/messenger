@@ -45,39 +45,127 @@
             <h6 class="green--text mt-1">Online</h6>
           </h5>
 
-          <v-btn color="primary" elevation="0" rounded class="d-flex mx-auto"
-            >Редагувати профіль</v-btn
+          <v-btn
+            :color="!edit_profile ? 'primary' : 'white'"
+            elevation="0"
+            rounded
+            @click="edit_profile = !edit_profile"
+            class="d-flex mx-auto"
           >
+            <span v-if="!edit_profile">Редагувати профіль</span>
+            <span v-else>Скасувати редагування</span>
+          </v-btn>
 
           <v-list three-line>
-            <v-list-item v-ripple>
+            <v-list-item v-ripple="!edit_profile">
+              <v-list-item-icon>
+                <v-icon> mdi-account-outline </v-icon>
+              </v-list-item-icon>
+
               <v-list-item-content>
-                <v-list-item-subtitle>Ім'я та прізвище</v-list-item-subtitle>
-                <v-list-item-title class="d-flex align-items-center">
-                  <v-icon class="mr-2">mdi-account-outline</v-icon>
-                  {{ profile.firstname }} {{ profile.lastname }}
+                <v-list-item-title>
+                  <span v-if="!edit_profile">
+                    {{ profile.firstname }} {{ profile.lastname }}
+                  </span>
+
+                  <form class="d-flex py-1" v-else>
+                    <v-text-field
+                      type="text"
+                      v-model.trim="profile.firstname"
+                      name="firstname"
+                      label="Ім'я"
+                      autofocus
+                      required
+                      minlength="2"
+                      maxlength="20"
+                      autocomplete="off"
+                      hide-details="auto"
+                    ></v-text-field>
+                    <v-text-field
+                      type="text"
+                      v-model.trim="profile.lastname"
+                      name="lastname"
+                      label="Прізвище"
+                      minlength="2"
+                      maxlength="20"
+                      autocomplete="off"
+                      hide-details="auto"
+                      class="ml-4"
+                    ></v-text-field>
+                  </form>
                 </v-list-item-title>
+                <v-list-item-subtitle v-if="!edit_profile">
+                  Ім'я та прізвище
+                </v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
-            <v-list-item v-ripple>
+
+            <v-list-item v-ripple="!edit_profile">
+              <v-list-item-icon>
+                <v-icon> mdi-email-outline </v-icon>
+              </v-list-item-icon>
+
               <v-list-item-content>
-                <v-list-item-subtitle>Email</v-list-item-subtitle>
-                <v-list-item-title class="d-flex align-items-center">
-                  <v-icon class="mr-2">mdi-email-outline</v-icon>
-                  {{ profile.email }}
+                <v-list-item-title>
+                  <span v-if="!edit_profile">{{ profile.email }}</span>
+
+                  <form class="d-flex py-1" v-else>
+                    <v-text-field
+                      type="email"
+                      v-model.trim="profile.email"
+                      name="email"
+                      label="E-mail"
+                      required
+                      autocomplete="off"
+                      hide-details="auto"
+                    ></v-text-field>
+                  </form>
                 </v-list-item-title>
+                <v-list-item-subtitle v-if="!edit_profile">
+                  E-mail
+                </v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
-            <v-list-item v-ripple>
+
+            <v-list-item v-ripple="!edit_profile">
+              <v-list-item-icon>
+                <v-icon> mdi-information-outline </v-icon>
+              </v-list-item-icon>
+
               <v-list-item-content>
-                <v-list-item-subtitle>Про себе</v-list-item-subtitle>
-                <v-list-item-title class="d-flex align-items-center">
-                  <v-icon class="mr-2">mdi-information-outline</v-icon>
-                  <span v-if="profile.bio"></span>
-                  <span class="text-muted" v-else>Напишіть про себе</span>
+                <v-list-item-title>
+                  <span v-if="!edit_profile">
+                    <span v-if="profile.bio"></span>
+                    <span v-else>Про себе</span>
+                  </span>
+
+                  <form class="d-flex py-1" v-else>
+                    <v-text-field
+                      type="text"
+                      v-model.trim="profile.bio"
+                      name="bio"
+                      label="Про себе"
+                      required
+                      autocomplete="off"
+                      hide-details="auto"
+                    ></v-text-field>
+                  </form>
                 </v-list-item-title>
+                <v-list-item-subtitle v-if="!edit_profile">
+                  Кілька слів про себе
+                </v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
+
+            <v-btn
+              fab
+              elevation="0"
+              color="primary"
+              v-if="edit_profile"
+              class="d-flex ml-auto mr-5 mb-2"
+            >
+              <v-icon>mdi-check</v-icon>
+            </v-btn>
           </v-list>
         </v-card>
       </v-dialog>
@@ -783,6 +871,7 @@ export default {
       dialog: false,
       profile: {},
       user_id: null,
+      edit_profile: false,
     };
   },
   methods: {
@@ -802,7 +891,7 @@ export default {
       this.$router.push("/login");
     }
 
-    console.log(this.$vuetify.breakpoint.mdAndDown);
+    console.log(`Mobile device: ${this.$vuetify.breakpoint.mobile}`);
 
     let res = await fetch(`/api/getUserID/${localStorage.token}`);
     const data = await res.json();
@@ -820,7 +909,7 @@ export default {
       this.$router.push("/login");
     }
 
-    this.loading = false;
+    setTimeout(() => (this.loading = false), 2000);
   },
   watch: {
     chat_id: function (value) {

@@ -69,6 +69,7 @@
             hide-details="auto"
             minlength="2"
             maxlength="20"
+            autocomplete="off"
           ></v-text-field>
 
           <v-text-field
@@ -82,6 +83,7 @@
             hide-details="auto"
             minlength="2"
             maxlength="20"
+            autocomplete="off"
             class="mt-2"
           ></v-text-field>
 
