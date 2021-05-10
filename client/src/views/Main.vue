@@ -382,6 +382,7 @@ export default {
       messages: {},
       view: "chats",
       chat_id: 0,
+      last_chat_id: 0,
       menu: false,
       loading: true,
       clicked: false,
@@ -490,6 +491,10 @@ export default {
         // console.log(this.messages);
 
         this.chats[value - 1].unread_count = 0;
+
+        document
+          .querySelector(".messages")
+          .scrollTo(0, document.querySelector(".messages").scrollHeight);
       } else {
         this.view = "chats";
       }
