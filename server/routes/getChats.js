@@ -54,7 +54,7 @@ router.get("/:token", async (req, res) => {
   // ==================================================
 
   let [chats] = await db.query(
-    `SELECT *, users.id AS user_id FROM messages INNER JOIN users ON users.id = messages.to_id OR users.id = messages.from_id
+    `SELECT *, messages.id AS id, users.id AS user_id FROM messages INNER JOIN users ON users.id = messages.to_id OR users.id = messages.from_id
     WHERE ( messages.to_id = (SELECT id FROM users WHERE token = '${req.params.token}') OR messages.from_id = (SELECT id FROM users WHERE token = '${req.params.token}') ) AND users.token != '${req.params.token}'
     AND messages.id IN ( SELECT MAX(messages.id) AS maxid FROM messages INNER JOIN users ON users.id = messages.to_id OR users.id = messages.from_id
     WHERE ( messages.to_id = (SELECT id FROM users WHERE token = '${req.params.token}') OR messages.from_id = (SELECT id FROM users WHERE token = '${req.params.token}') ) AND users.token != '${req.params.token}'
@@ -65,23 +65,25 @@ router.get("/:token", async (req, res) => {
     `SELECT id, from_id, COUNT(message) AS unread_count FROM messages WHERE to_id = (SELECT id FROM users WHERE token = "${req.params.token}") AND has_read = 0 GROUP BY from_id ORDER BY id DESC`
   );
 
+  console.log(unread_count);
+
   moment.locale("uk");
 
-  chats.forEach((el, i) => {
-    el.sent_date = moment.unix(el.sent_date).fromNow();
+  chats.forEach((chat) => {
+    chat.sent_date = moment.unix(chat.sent_date).fromNow();
 
-    if (el.was_online > moment().unix()) {
-      el.online = true;
+    if (chat.was_online > moment().unix()) {
+      chat.online = true;
     } else {
-      el.online = false;
-      el.was_online = moment.unix(el.was_online).fromNow();
+      chat.online = false;
+      chat.was_online = moment.unix(chat.was_online).fromNow();
     }
 
-    try {
-      el.unread_count = unread_count[i].unread_count;
-    } catch {
-      el.unread_count = 0;
-    }
+    unread_count.forEach((count) => {
+      if (count.from_id === chat.from_id) {
+        chat.unread_count = count.unread_count;
+      }
+    });
   });
 
   res.json(chats);
