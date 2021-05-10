@@ -419,11 +419,9 @@ export default {
     console.log(`Mobile device: ${this.$vuetify.breakpoint.mobile}`);
 
     // USER_ID
-    setInterval(async () => {
-      let res = await fetch(`/api/getUserID/${localStorage.token}`);
-      const data = await res.json();
-      this.user_id = data.id;
-    }, 60000); // Update online status
+    let res = await fetch(`/api/getUserID/${localStorage.token}`);
+    const data = await res.json();
+    this.user_id = data.id;
 
     // MY PROFILE
     if (this.user_id !== null) {
@@ -435,11 +433,18 @@ export default {
     }
 
     // CHATS
-    let res = await fetch(`/api/getChats/${localStorage.token}`);
+    res = await fetch(`/api/getChats/${localStorage.token}`);
     this.chats = await res.json();
     // console.log(this.chats);
 
     setTimeout(() => (this.loading = false), 2000);
+
+    // Update online status
+    setInterval(async () => {
+      let res = await fetch(`/api/getUserID/${localStorage.token}`);
+      const data = await res.json();
+      this.user_id = data.id;
+    }, 60000);
   },
   watch: {
     chat_id: async function (value) {

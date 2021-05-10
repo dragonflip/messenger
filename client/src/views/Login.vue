@@ -25,7 +25,7 @@
           >
         </p>
 
-        <form @submit.prevent @submit.prevent.once="emailForm">
+        <form @submit.prevent="!submitBlock ? emailForm() : ''">
           <v-text-field
             v-if="formStep === 1"
             type="email"
@@ -118,6 +118,7 @@ export default {
         lastname: "",
       },
       formStep: 1,
+      submitBlock: false,
       needRegister: false,
       loginCodeError: "",
       okLogin: false,
@@ -127,6 +128,8 @@ export default {
     async emailForm() {
       // Enter email
       if (this.formStep === 1) {
+        this.submitBlock = true;
+
         const res = await fetch("/api/sendCode", {
           method: "POST",
           headers: {
@@ -138,9 +141,13 @@ export default {
 
         this.needRegister = data.need_register;
         this.formStep++;
+
+        this.submitBlock = false;
       }
       // Enter login code
       else if (this.formStep === 2) {
+        this.submitBlock = true;
+
         const res = await fetch("/api/signIn", {
           method: "POST",
           headers: {
@@ -171,8 +178,12 @@ export default {
         } else {
           this.loginCodeError = "Не правильний код підтвердження";
         }
+
+        this.submitBlock = false;
       } // Registration
       else if (this.formStep === 3) {
+        this.submitBlock = true;
+
         const res = await fetch("/api/signUp", {
           method: "POST",
           headers: {
@@ -196,6 +207,8 @@ export default {
             this.$router.push("/");
           }, 1000);
         }
+
+        this.submitBlock = false;
       }
     },
   },
