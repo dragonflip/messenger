@@ -25,7 +25,7 @@
           >
         </p>
 
-        <form @submit.prevent="emailForm">
+        <form @submit.prevent @submit.prevent.once="emailForm">
           <v-text-field
             v-if="formStep === 1"
             type="email"
@@ -96,16 +96,7 @@
             type="submit"
             :loading="okLogin"
           >
-            <!-- <v-progress-circular
-              v-if="okLogin"
-              color="white"
-              indeterminate
-              class="mr-1"
-            ></v-progress-circular> -->
-
-            <span v-if="formStep === 1 || (formStep === 2 && needRegister)"
-              >Продовжити</span
-            >
+            <span v-if="formStep === 1 || needRegister">Продовжити</span>
             <span v-else-if="formStep === 3">Почати спілкування</span>
             <span v-else>Увійти</span>
           </v-btn>

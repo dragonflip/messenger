@@ -333,7 +333,7 @@
             </div>
           </div>
           <div class="send_message w-100 mb-5 d-flex">
-            <v-form class="d-flex w-100">
+            <form class="d-flex w-100" @submit.prevent="send_message()">
               <v-text-field
                 type="text"
                 label="Повідомлення"
@@ -344,6 +344,7 @@
                 class="ml-5"
               ></v-text-field>
               <v-btn
+                type="submit"
                 x-large
                 elevation="0"
                 color="white"
@@ -352,7 +353,7 @@
               >
                 <v-icon color="primary">mdi-send</v-icon>
               </v-btn>
-            </v-form>
+            </form>
           </div>
         </div>
 
@@ -393,6 +394,22 @@ export default {
         this.$router.push("/login");
       }, 1000);
     },
+    send_message: function () {
+      // const res = await fetch(`/api/sendMessage/${localStorage.token}`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     from_id: this.user_id,
+      //     to_id: this.chat_id,
+      //     firstname: this.form.firstname,
+      //     lastname: this.form.lastname,
+      //   }),
+      // });
+      // const data = await res.json();
+      console.log(this.chats[this.chat_id - 1].user_id);
+    },
   },
   async mounted() {
     if (!localStorage.token) {
@@ -402,9 +419,11 @@ export default {
     console.log(`Mobile device: ${this.$vuetify.breakpoint.mobile}`);
 
     // USER_ID
-    let res = await fetch(`/api/getUserID/${localStorage.token}`);
-    const data = await res.json();
-    this.user_id = data.id;
+    setInterval(async () => {
+      let res = await fetch(`/api/getUserID/${localStorage.token}`);
+      const data = await res.json();
+      this.user_id = data.id;
+    }, 60000); // Update online status
 
     // MY PROFILE
     if (this.user_id !== null) {
@@ -416,7 +435,7 @@ export default {
     }
 
     // CHATS
-    res = await fetch(`/api/getChats/${localStorage.token}`);
+    let res = await fetch(`/api/getChats/${localStorage.token}`);
     this.chats = await res.json();
     // console.log(this.chats);
 
