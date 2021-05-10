@@ -335,6 +335,7 @@
           <div class="send_message w-100 mb-5 d-flex">
             <form class="d-flex w-100" @submit.prevent="send_message()">
               <v-text-field
+                v-model.trim="messageTextBox"
                 type="text"
                 label="Повідомлення"
                 required
@@ -381,6 +382,7 @@ export default {
       profile: {},
       user_id: null,
       edit_profile: false,
+      messageTextBox: "",
     };
   },
   methods: {
@@ -394,21 +396,26 @@ export default {
         this.$router.push("/login");
       }, 1000);
     },
-    send_message: function () {
-      // const res = await fetch(`/api/sendMessage/${localStorage.token}`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     from_id: this.user_id,
-      //     to_id: this.chat_id,
-      //     firstname: this.form.firstname,
-      //     lastname: this.form.lastname,
-      //   }),
-      // });
-      // const data = await res.json();
-      console.log(this.chats[this.chat_id - 1].user_id);
+    send_message: async function () {
+      await fetch(`/api/sendMessage/${localStorage.token}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from_id: this.user_id,
+          to_id: this.chats[this.chat_id - 1].user_id,
+          message: this.messageTextBox,
+        }),
+      });
+
+      let res = await fetch(
+        `/api/getMessages/${localStorage.token}/${
+          this.chats[this.chat_id - 1].user_id
+        }`
+      );
+      this.messages = await res.json();
+      this.messageTextBox = "";
     },
   },
   async mounted() {
@@ -445,6 +452,19 @@ export default {
       const data = await res.json();
       this.user_id = data.id;
     }, 60000);
+
+    // Check new messages
+    setInterval(async () => {
+      let res = await fetch(
+        `/api/getMessages/${localStorage.token}/${
+          this.chats[this.chat_id - 1].user_id
+        }`
+      );
+      this.messages = await res.json();
+
+      res = await fetch(`/api/getChats/${localStorage.token}`);
+      this.chats = await res.json();
+    }, 10000);
   },
   watch: {
     chat_id: async function (value) {

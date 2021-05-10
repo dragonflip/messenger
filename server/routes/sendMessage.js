@@ -7,13 +7,11 @@ const moment = require("moment");
 router.post("/:token", async (req, res) => {
   let CurrentDate = moment().unix();
 
-  let [message] = await db.query(
+  await db.query(
     `INSERT INTO messages(from_id, to_id, message, sent_date, has_read) VALUES ('${req.body.from_id}', '${req.body.to_id}', '${req.body.message}', '${CurrentDate}', 0)`
   );
 
-  console.log(message);
-
-  res.json(message);
+  res.json({ ok: true });
 });
 
 module.exports = router;
