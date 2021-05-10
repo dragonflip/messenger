@@ -416,6 +416,7 @@ export default {
       );
       this.messages = await res.json();
       this.messageTextBox = "";
+      this.chat_id = 1;
     },
   },
   async mounted() {
@@ -464,7 +465,7 @@ export default {
 
       res = await fetch(`/api/getChats/${localStorage.token}`);
       this.chats = await res.json();
-    }, 10000);
+    }, 5000);
   },
   watch: {
     chat_id: async function (value) {

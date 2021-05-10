@@ -213,6 +213,8 @@ export default {
     },
   },
   mounted() {
+    localStorage.removeItem("login");
+
     if (localStorage.token) {
       this.$router.push("/");
     }
