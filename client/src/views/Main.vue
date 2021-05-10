@@ -189,6 +189,10 @@
                   v-on="on"
                 ></v-app-bar-nav-icon>
                 <v-toolbar-title>Messenger</v-toolbar-title>
+                <v-spacer></v-spacer>
+                <v-btn icon>
+                  <v-icon>mdi-magnify</v-icon>
+                </v-btn>
               </v-app-bar>
             </template>
             <v-list>
@@ -251,6 +255,7 @@
                   </div>
                   <div class="message-subtitle d-flex justify-space-between">
                     <div class="message">
+                      <span v-if="chat.from_id === user_id">Ви:</span>
                       {{ chat.message }}
                     </div>
                     <div class="unread_count" v-if="chat.unread_count > 0">
@@ -271,22 +276,24 @@
       <div class="col-lg-8 p-0 d-none d-md-flex flex-column">
         <div class="nav_bar d-flex" v-if="chat_id > 0">
           <v-app-bar flat color="white">
-            <v-avatar :color="users[chat_id - 1].avatar_color" size="50"
-              ><span class="white--text">{{
-                users[chat_id - 1].avatar
-              }}</span></v-avatar
-            >
+            <v-avatar color="accent" size="50">
+              <span class="white--text">
+                {{ chats[chat_id - 1].firstname[0] }}
+                {{ chats[chat_id - 1].lastname[0] }}
+              </span>
+            </v-avatar>
 
             <h5 class="ml-2 mb-0 d-flex flex-column">
-              {{ users[chat_id - 1].name }}
+              {{ chats[chat_id - 1].firstname }}
+              {{ chats[chat_id - 1].lastname }}
               <span
-                :class="
-                  users[chat_id - 1].online == 'Online'
-                    ? 'green--text'
-                    : 'grey--text'
-                "
+                class="green--text"
                 style="font-size: 60%"
-                >{{ users[chat_id - 1].online }}</span
+                v-if="chats[chat_id - 1].online"
+                >Онлайн</span
+              >
+              <span class="grey--text" style="font-size: 60%" v-else
+                >В мережі {{ chats[chat_id - 1].was_online }}</span
               >
             </h5>
           </v-app-bar>
@@ -298,22 +305,31 @@
         >
           <div class="messages d-flex flex-column px-5 mb-5">
             <div
-              :class="message.out ? 'to' : 'from'"
               class="d-flex"
-              v-for="(message, i) in all_messages[chat_id - 1].messages"
+              v-for="(message, i) in messages"
               :key="i"
+              :class="message.from_id === user_id ? 'to' : 'from'"
             >
               <div class="message_text">{{ message.message }}</div>
               <div class="message_time align-self-end ml-1">
                 {{ message.sent_date }}
               </div>
-              <v-icon
-                color="white"
-                v-if="message.out"
-                class="ml-1"
-                style="font-size: 22px"
-                >mdi-check-all</v-icon
-              >
+              <span v-if="message.from_id === user_id">
+                <v-icon
+                  color="white"
+                  class="ml-1"
+                  style="font-size: 22px"
+                  v-if="message.has_read"
+                  >mdi-check-all</v-icon
+                >
+                <v-icon
+                  color="white"
+                  class="ml-1"
+                  style="font-size: 22px"
+                  v-else
+                  >mdi-check</v-icon
+                >
+              </span>
             </div>
           </div>
           <div class="send_message w-100 mb-5 d-flex">
@@ -353,18 +369,8 @@ export default {
   name: "Main",
   data() {
     return {
-      all_messages: {},
       chats: {},
-      // chats: {
-      //   id: 1,
-      //   avatar: "І М",
-      //   from: "Ігор Модняк",
-      //   message: "А воно ріл працює, красава",
-      //   time: "20:07",
-      //   status: 0,
-      //   unread_count: 1,
-      //   out: false,
-      // },
+      messages: {},
       view: "chats",
       chat_id: 0,
       menu: false,
@@ -418,9 +424,19 @@ export default {
     setTimeout(() => (this.loading = false), 2000);
   },
   watch: {
-    chat_id: function (value) {
+    chat_id: async function (value) {
       if (value > 0) {
         this.view = "messages";
+
+        // MESSAGES
+        let res = await fetch(
+          `/api/getMessages/${localStorage.token}/${
+            this.chats[value - 1].user_id
+          }`
+        );
+        this.messages = await res.json();
+
+        console.log(this.messages);
       } else {
         this.view = "chats";
       }

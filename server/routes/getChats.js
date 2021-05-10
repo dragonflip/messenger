@@ -54,7 +54,7 @@ router.get("/:token", async (req, res) => {
   // ==================================================
 
   let [chats] = await db.query(
-    `SELECT * FROM messages INNER JOIN users ON users.id = messages.to_id OR users.id = messages.from_id
+    `SELECT *, users.id AS user_id FROM messages INNER JOIN users ON users.id = messages.to_id OR users.id = messages.from_id
     WHERE ( messages.to_id = (SELECT id FROM users WHERE token = '${req.params.token}') OR messages.from_id = (SELECT id FROM users WHERE token = '${req.params.token}') ) AND users.token != '${req.params.token}'
     AND messages.id IN ( SELECT MAX(messages.id) AS maxid FROM messages INNER JOIN users ON users.id = messages.to_id OR users.id = messages.from_id
     WHERE ( messages.to_id = (SELECT id FROM users WHERE token = '${req.params.token}') OR messages.from_id = (SELECT id FROM users WHERE token = '${req.params.token}') ) AND users.token != '${req.params.token}'
@@ -65,8 +65,17 @@ router.get("/:token", async (req, res) => {
     `SELECT id, from_id, COUNT(message) AS unread_count FROM messages WHERE to_id = (SELECT id FROM users WHERE token = "${req.params.token}") AND has_read = 0 GROUP BY from_id ORDER BY id DESC`
   );
 
+  moment.locale("uk");
+
   chats.forEach((el, i) => {
     el.sent_date = moment.unix(el.sent_date).fromNow();
+
+    if (el.was_online > moment().unix()) {
+      el.online = true;
+    } else {
+      el.online = false;
+      el.was_online = moment.unix(el.was_online).fromNow();
+    }
 
     try {
       el.unread_count = unread_count[i].unread_count;
