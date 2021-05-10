@@ -19,7 +19,6 @@ app.use("/api/getChats", require("./routes/getChats"));
 app.use("/api/getMessages", require("./routes/getMessages"));
 app.use("/api/sendMessage", require("./routes/sendMessage"));
 
-
 app.use("/api/getUserID", require("./routes/getUserID"));
 app.use("/api/getProfile", require("./routes/getProfile"));
 app.use("/api/editProfile", require("./routes/editProfile"));

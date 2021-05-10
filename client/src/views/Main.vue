@@ -418,8 +418,7 @@ export default {
     // CHATS
     res = await fetch(`/api/getChats/${localStorage.token}`);
     this.chats = await res.json();
-
-    console.log(this.chats);
+    // console.log(this.chats);
 
     setTimeout(() => (this.loading = false), 2000);
   },
@@ -435,8 +434,9 @@ export default {
           }`
         );
         this.messages = await res.json();
+        // console.log(this.messages);
 
-        console.log(this.messages);
+        this.chats[value - 1].unread_count = 0;
       } else {
         this.view = "chats";
       }

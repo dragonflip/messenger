@@ -65,8 +65,6 @@ router.get("/:token", async (req, res) => {
     `SELECT id, from_id, COUNT(message) AS unread_count FROM messages WHERE to_id = (SELECT id FROM users WHERE token = "${req.params.token}") AND has_read = 0 GROUP BY from_id ORDER BY id DESC`
   );
 
-  console.log(unread_count);
-
   moment.locale("uk");
 
   chats.forEach((chat) => {
