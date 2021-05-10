@@ -7,7 +7,7 @@ router.put("/:token", async (req, res) => {
     `UPDATE users set firstname ='${req.body.firstname}',lastname ='${req.body.lastname}',email ='${req.body.email}', bio ='${req.body.bio}' WHERE token = '${req.params.token}'`
   );
 
-  res.json({ok:true});
+  res.json({ ok: true });
 });
 
 module.exports = router;

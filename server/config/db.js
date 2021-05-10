@@ -11,11 +11,9 @@ const db = mysql
   .promise();
 
 db.connect().then(async () => {
-  console.log("Mysql connected");
+  console.log("MySQL connected");
 
-  await db.query(
-    `SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))`
-  );
+  await db.query(`SET sql_mode = ''`);
 
   setInterval(function () {
     db.query("SELECT 1");

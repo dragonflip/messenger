@@ -226,35 +226,34 @@
                 :key="i"
               >
                 <div class="photo">
-                  <v-avatar :color="users[i].avatar_color" size="55"
-                    ><span class="white--text">{{
-                      chat.avatar
-                    }}</span></v-avatar
+                  <v-avatar color="accent" size="55"
+                    ><span class="white--text"
+                      >{{ chat.firstname[0] }} {{ chat.lastname[0] }}</span
+                    ></v-avatar
                   >
                 </div>
                 <div class="message-details w-100">
                   <div class="message-title d-flex justify-space-between">
-                    <div class="name">{{ chat.from }}</div>
+                    <div class="name">
+                      {{ chat.firstname }} {{ chat.lastname }}
+                    </div>
                     <div class="time">
                       <v-icon
                         color="green"
                         style="font-size: 22px"
-                        v-if="chat.out"
+                        v-if="chat.from_id === user_id"
                         >{{
-                          chat.status ? "mdi-check-all" : "mdi-check"
+                          chat.has_read ? "mdi-check-all" : "mdi-check"
                         }}</v-icon
                       >
-                      {{ chat.time }}
+                      {{ chat.sent_date }}
                     </div>
                   </div>
                   <div class="message-subtitle d-flex justify-space-between">
                     <div class="message">
                       {{ chat.message }}
                     </div>
-                    <div
-                      class="unread_count"
-                      v-if="chat.unread_count > 0 && !chat.out"
-                    >
+                    <div class="unread_count" v-if="chat.unread_count > 0">
                       <v-badge
                         :content="chat.unread_count"
                         color="green"
@@ -354,515 +353,18 @@ export default {
   name: "Main",
   data() {
     return {
-      // to_id: "ME",
-      users: [
-        {
-          from_id: 1,
-          avatar: "І М",
-          avatar_color: "primary",
-          name: "Ігор Модняк",
-          online: "Останні відвідини 07.05.2021 в 21:01",
-        },
-        {
-          from_id: 2,
-          avatar: "П К",
-          avatar_color: "green",
-          name: "Петро Крутій",
-          online: "Online",
-        },
-        {
-          from_id: 3,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 4,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 5,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 6,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 7,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 8,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 9,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 10,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 11,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 12,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 13,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 14,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-        {
-          from_id: 15,
-          avatar: "В П",
-          avatar_color: "orange",
-          name: "Василь Пупкін",
-          online: "Online",
-        },
-      ],
-      all_messages: [
-        {
-          messages: [
-            {
-              message: "Куку, пишу тобі тестове повідомлення",
-              sent_date: "19:57",
-              has_read: true,
-              out: false,
-            },
-            {
-              message: "Привіт, надсилаю тобі відповідь))",
-              sent_date: "20:03",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "А воно ріл працює, красава",
-              sent_date: "20:07",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Чел, вроді всьо пахає класно. Ставлю вподобайку",
-              sent_date: "13:14",
-              has_read: true,
-              out: false,
-            },
-            {
-              message: "Подякував",
-              sent_date: "13:15",
-              has_read: true,
-              out: true,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-        {
-          messages: [
-            {
-              message: "Диви шо можу",
-              sent_date: "08:23",
-              has_read: true,
-              out: true,
-            },
-            {
-              message: "Ого, маєш файний месенджер😎",
-              sent_date: "08:23",
-              has_read: true,
-              out: false,
-            },
-          ],
-        },
-      ],
-
-      chats: [
-        {
-          id: 1,
-          avatar: "І М",
-          from: "Ігор Модняк",
-          message: "А воно ріл працює, красава",
-          time: "20:07",
-          status: 0,
-          unread_count: 1,
-          out: false,
-        },
-        {
-          id: 2,
-          avatar: "П К",
-          from: "Петро Крутій",
-          message: "Подякував",
-          time: "13:15",
-          status: 1,
-          unread_count: 0,
-          out: true,
-        },
-        {
-          id: 3,
-          avatar: "В П",
-          from: "Василь Пупкін",
-          message: "Ого, маєш файний месенджер😎",
-          time: "06.05.2021",
-          status: 0,
-          unread_count: 0,
-          out: false,
-        },
-        {
-          id: 4,
-          avatar: "І М",
-          from: "Ігор Модняк",
-          message: "А воно ріл працює, красава",
-          time: "20:07",
-          status: 0,
-          unread_count: 1,
-          out: false,
-        },
-        {
-          id: 5,
-          avatar: "П К",
-          from: "Петро Крутій",
-          message: "Подякував",
-          time: "13:15",
-          status: 1,
-          unread_count: 0,
-          out: true,
-        },
-        {
-          id: 6,
-          avatar: "В П",
-          from: "Василь Пупкін",
-          message: "Ого, маєш файний месенджер😎",
-          time: "06.05.2021",
-          status: 0,
-          unread_count: 0,
-          out: false,
-        },
-        {
-          id: 7,
-          avatar: "І М",
-          from: "Ігор Модняк",
-          message: "А воно ріл працює, красава",
-          time: "20:07",
-          status: 0,
-          unread_count: 1,
-          out: false,
-        },
-        {
-          id: 8,
-          avatar: "П К",
-          from: "Петро Крутій",
-          message: "Подякував",
-          time: "13:15",
-          status: 1,
-          unread_count: 0,
-          out: true,
-        },
-        {
-          id: 9,
-          avatar: "В П",
-          from: "Василь Пупкін",
-          message: "Ого, маєш файний месенджер😎",
-          time: "06.05.2021",
-          status: 0,
-          unread_count: 0,
-          out: false,
-        },
-        {
-          id: 10,
-          avatar: "І М",
-          from: "Ігор Модняк",
-          message: "А воно ріл працює, красава",
-          time: "20:07",
-          status: 0,
-          unread_count: 1,
-          out: false,
-        },
-        {
-          id: 11,
-          avatar: "П К",
-          from: "Петро Крутій",
-          message: "Подякував",
-          time: "13:15",
-          status: 1,
-          unread_count: 0,
-          out: true,
-        },
-        {
-          id: 12,
-          avatar: "В П",
-          from: "Василь Пупкін",
-          message: "Ого, маєш файний месенджер😎",
-          time: "06.05.2021",
-          status: 0,
-          unread_count: 0,
-          out: false,
-        },
-        {
-          id: 13,
-          avatar: "В П",
-          from: "Василь Пупкін",
-          message: "Ого, маєш файний месенджер😎",
-          time: "06.05.2021",
-          status: 0,
-          unread_count: 0,
-          out: false,
-        },
-        {
-          id: 14,
-          avatar: "В П",
-          from: "Василь Пупкін",
-          message: "Ого, маєш файний месенджер😎",
-          time: "06.05.2021",
-          status: 0,
-          unread_count: 0,
-          out: false,
-        },
-        {
-          id: 15,
-          avatar: "В П",
-          from: "Василь Пупкін",
-          message: "Ого, маєш файний месенджер😎",
-          time: "06.05.2021",
-          status: 0,
-          unread_count: 0,
-          out: false,
-        },
-      ],
+      all_messages: {},
+      chats: {},
+      // chats: {
+      //   id: 1,
+      //   avatar: "І М",
+      //   from: "Ігор Модняк",
+      //   message: "А воно ріл працює, красава",
+      //   time: "20:07",
+      //   status: 0,
+      //   unread_count: 1,
+      //   out: false,
+      // },
       view: "chats",
       chat_id: 0,
       menu: false,
@@ -893,21 +395,25 @@ export default {
 
     console.log(`Mobile device: ${this.$vuetify.breakpoint.mobile}`);
 
+    // USER_ID
     let res = await fetch(`/api/getUserID/${localStorage.token}`);
     const data = await res.json();
     this.user_id = data.id;
 
+    // MY PROFILE
     if (this.user_id !== null) {
-      this.loading = true;
-
       let res = await fetch(`/api/getProfile/${this.user_id}`);
       this.profile = await res.json();
     } else {
-      this.loading = true;
-
       localStorage.removeItem("token");
       this.$router.push("/login");
     }
+
+    // CHATS
+    res = await fetch(`/api/getChats/${localStorage.token}`);
+    this.chats = await res.json();
+
+    console.log(this.chats);
 
     setTimeout(() => (this.loading = false), 2000);
   },
