@@ -300,17 +300,23 @@
         </div>
 
         <div
-          class="messages_view d-flex flex-column w-100 mt-auto"
           v-if="chat_id > 0"
+          class="messages_view d-flex flex-column w-100 mt-auto"
         >
-          <div class="messages d-flex flex-column px-5 mb-5">
+          <div
+            class="messages d-flex flex-column px-5 mb-5"
+            style="height: calc(100vh - 160px); overflow-y: auto"
+          >
             <div
               class="d-flex"
               v-for="(message, i) in messages"
               :key="i"
               :class="message.from_id === user_id ? 'to' : 'from'"
+              style="max-width: 80%"
             >
-              <div class="message_text">{{ message.message }}</div>
+              <div class="message_text" style="word-break: break-all">
+                {{ message.message }}
+              </div>
               <div class="message_time align-self-end ml-1">
                 {{ message.sent_date }}
               </div>
@@ -343,6 +349,7 @@
                 hide-details="auto"
                 autocomplete="off"
                 class="ml-5"
+                maxlength="200"
               ></v-text-field>
               <v-btn
                 type="submit"
@@ -416,7 +423,6 @@ export default {
       );
       this.messages = await res.json();
       this.messageTextBox = "";
-      this.chat_id = 1;
     },
   },
   async mounted() {
@@ -449,9 +455,11 @@ export default {
 
     // Update online status
     setInterval(async () => {
-      let res = await fetch(`/api/getUserID/${localStorage.token}`);
-      const data = await res.json();
-      this.user_id = data.id;
+      if (!document.hidden) {
+        let res = await fetch(`/api/getUserID/${localStorage.token}`);
+        const data = await res.json();
+        this.user_id = data.id;
+      }
     }, 60000);
 
     // Check new messages
@@ -465,7 +473,7 @@ export default {
 
       res = await fetch(`/api/getChats/${localStorage.token}`);
       this.chats = await res.json();
-    }, 5000);
+    }, 2000);
   },
   watch: {
     chat_id: async function (value) {
