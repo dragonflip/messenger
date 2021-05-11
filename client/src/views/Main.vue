@@ -198,6 +198,8 @@
                 <v-avatar size="50" v-else>
                   <img :src="user.profile_photo" />
                 </v-avatar>
+
+                <!-- <v-badge bordered bottom color="green" dot></v-badge> -->
               </v-list-item-icon>
 
               <v-list-item-content>
@@ -281,6 +283,16 @@
                   <v-avatar size="55" v-else>
                     <img :src="chat.profile_photo" />
                   </v-avatar>
+
+                  <v-badge
+                    v-if="chat.online"
+                    bordered
+                    bottom
+                    color="green"
+                    dot
+                    offset-x="9"
+                    offset-y="-9"
+                  ></v-badge>
                 </div>
                 <div class="message-details w-100">
                   <div class="message-title d-flex justify-space-between">

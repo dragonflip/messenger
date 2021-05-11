@@ -5,7 +5,6 @@ const db = require("../config/db");
 const moment = require("moment");
 
 router.get("/:token", async (req, res) => {
-
   let [chats] = await db.query(
     `SELECT *, messages.id AS id, users.id AS user_id FROM messages INNER JOIN users ON users.id = messages.to_id OR users.id = messages.from_id
     WHERE ( messages.to_id = (SELECT id FROM users WHERE token = '${req.params.token}') OR messages.from_id = (SELECT id FROM users WHERE token = '${req.params.token}') ) AND users.token != '${req.params.token}'
