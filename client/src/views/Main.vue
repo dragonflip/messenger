@@ -566,12 +566,16 @@ export default {
 
     // Update online status
     setInterval(async () => {
-      // if (!document.hidden) {
-      let res = await fetch(`/api/getUserID/${localStorage.token}`);
-      const data = await res.json();
-      this.user_id = data.user_id;
-      // }
-    }, 59000);
+      if (!document.hidden) {
+        let res = await fetch(`/api/getUserID/${localStorage.token}`);
+        const data = await res.json();
+        this.user_id = data.user_id;
+
+        if (this.user_id === null) {
+          this.$router.push("/");
+        }
+      }
+    }, 55000);
 
     // Check new messages
     setInterval(async () => {
