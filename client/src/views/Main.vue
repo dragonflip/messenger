@@ -374,7 +374,7 @@
               :class="message.from_id === user_id ? 'to' : 'from'"
               style="max-width: 80%"
             >
-              <div class="message_text" style="word-break: break-all">
+              <div class="message_text">
                 {{ message.message }}
               </div>
               <div class="message_time align-self-end ml-1">
@@ -400,16 +400,18 @@
           </div>
           <div class="send_message w-100 mb-5 d-flex">
             <form class="d-flex w-100" @submit.prevent="send_message()">
-              <v-text-field
+              <v-textarea
                 v-model="messageTextBox"
-                type="text"
                 label="Повідомлення"
                 autofocus
                 hide-details="auto"
                 autocomplete="off"
                 class="ml-5"
-                maxlength="200"
-              ></v-text-field>
+                id="messageTextBox"
+                rows="1"
+                auto-grow
+                @keydown="send_message"
+              ></v-textarea>
               <v-btn
                 type="submit"
                 x-large
@@ -469,42 +471,43 @@ export default {
         this.$router.push("/login");
       }, 1000);
     },
-    send_message: async function () {
+    send_message: async function (e) {
       if (!this.messageTextBox.replace(/\s/g, "").length) {
         this.messageTextBox = "";
-
         return;
       }
 
-      await fetch(`/api/sendMessage/${localStorage.token}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from_id: this.user_id,
-          to_id: this.chats[this.chat_id - 1].user_id,
-          message: this.messageTextBox,
-        }),
-      });
+      if (!e || (e.keyCode === 13 && !e.shiftKey)) {
+        await fetch(`/api/sendMessage/${localStorage.token}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from_id: this.user_id,
+            to_id: this.chats[this.chat_id - 1].user_id,
+            message: this.messageTextBox,
+          }),
+        });
 
-      // let last_chat_id = this.chat_id;
+        // let last_chat_id = this.chat_id;
 
-      let res = await fetch(
-        `/api/getMessages/${localStorage.token}/${
-          this.chats[this.chat_id - 1].user_id
-        }`
-      );
-      this.messages = await res.json();
+        let res = await fetch(
+          `/api/getMessages/${localStorage.token}/${
+            this.chats[this.chat_id - 1].user_id
+          }`
+        );
+        this.messages = await res.json();
 
-      res = await fetch(`/api/getChats/${localStorage.token}`);
-      this.chats = await res.json();
+        res = await fetch(`/api/getChats/${localStorage.token}`);
+        this.chats = await res.json();
 
-      this.messageTextBox = "";
-      this.chat_id = 1;
+        this.messageTextBox = "";
+        this.chat_id = 1;
 
-      let scroll = await document.getElementById("messages");
-      scroll.scrollTop = scroll.scrollHeight;
+        let scroll = await document.getElementById("messages");
+        scroll.scrollTop = scroll.scrollHeight;
+      }
     },
     selectUser: async function (id) {
       await fetch(`/api/sendMessage/${localStorage.token}`, {
@@ -630,6 +633,8 @@ export default {
 
         let scroll = await document.getElementById("messages");
         scroll.scrollTop = scroll.scrollHeight;
+
+        document.getElementById("messageTextBox").focus();
       } else {
         this.view = "chats";
       }
@@ -708,6 +713,11 @@ export default {
   border-radius: 15px;
   margin-top: 10px;
   align-self: flex-start;
+}
+
+.message_text {
+  word-break: break-all;
+  white-space: pre-line;
 }
 
 .from:before {
