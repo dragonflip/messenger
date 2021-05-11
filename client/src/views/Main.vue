@@ -458,6 +458,7 @@ export default {
       edit_profile: false,
       messageTextBox: "",
       to_id: 0,
+      notifTimeout: false,
     };
   },
   methods: {
@@ -472,12 +473,12 @@ export default {
       }, 1000);
     },
     send_message: async function (e) {
-      if (!this.messageTextBox.replace(/\s/g, "").length) {
-        this.messageTextBox = "";
-        return;
-      }
-
       if (!e || (e.keyCode === 13 && !e.shiftKey)) {
+        if (!this.messageTextBox.trim()) {
+          this.messageTextBox = "";
+          return;
+        }
+
         await fetch(`/api/sendMessage/${localStorage.token}`, {
           method: "POST",
           headers: {
@@ -489,6 +490,8 @@ export default {
             message: this.messageTextBox,
           }),
         });
+
+        this.messageTextBox = "";
 
         // let last_chat_id = this.chat_id;
 
@@ -502,11 +505,12 @@ export default {
         res = await fetch(`/api/getChats/${localStorage.token}`);
         this.chats = await res.json();
 
-        this.messageTextBox = "";
         this.chat_id = 1;
 
         let scroll = await document.getElementById("messages");
         scroll.scrollTop = scroll.scrollHeight;
+
+        this.notifTimeout = true;
       }
     },
     selectUser: async function (id) {
@@ -584,9 +588,17 @@ export default {
 
           let scroll = await document.getElementById("messages");
           scroll.scrollTop = scroll.scrollHeight;
+
+          if (!this.notifTimeout) {
+            let audio = new Audio(
+              "https://audiokaif.ru/wp-content/uploads/2019/04/3-Звук-сообщения-вконтакте.mp3"
+            );
+            audio.play();
+          }
         }
 
         this.messages = data;
+        this.notifTimeout = false;
 
         // let scroll = await document.getElementById("messages");
         // if (scroll.scrollTop != scroll.scrollHeight) {

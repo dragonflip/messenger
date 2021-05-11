@@ -128,7 +128,7 @@ export default {
     async emailForm() {
       // Enter email
       if (this.formStep === 1) {
-        if (!this.form.email.replace(/\s/g, "").length) {
+        if (!this.form.email.trim()) {
           this.email = "";
           return;
         }
@@ -151,7 +151,7 @@ export default {
       }
       // Enter login code
       else if (this.formStep === 2) {
-        if (!this.form.login_code.replace(/\s/g, "").length) {
+        if (!this.form.login_code.trim()) {
           this.form.login_code = "";
           return;
         }
@@ -193,14 +193,11 @@ export default {
         this.submitBlock = false;
       } // Registration
       else if (this.formStep === 3) {
-        if (!this.form.firstname.replace(/\s/g, "").length) {
+        if (!this.form.firstname.trim()) {
           this.form.firstname = "";
           return;
         }
-        if (
-          !this.form.lastname.replace(/\s/g, "").length &&
-          this.form.lastname.length
-        ) {
+        if (!this.form.lastname.trim() && this.form.lastname.length) {
           this.form.lastname = "";
           return;
         }
