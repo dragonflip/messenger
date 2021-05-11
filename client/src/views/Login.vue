@@ -178,6 +178,7 @@ export default {
 
           if (this.needRegister) {
             this.formStep++;
+            this.okLogin = false;
           } else {
             setTimeout(() => {
               localStorage.token = data.token;
@@ -196,7 +197,10 @@ export default {
           this.form.firstname = "";
           return;
         }
-        if (!this.form.lastname.replace(/\s/g, "").length) {
+        if (
+          !this.form.lastname.replace(/\s/g, "").length &&
+          this.form.lastname.length
+        ) {
           this.form.lastname = "";
           return;
         }

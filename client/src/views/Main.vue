@@ -170,6 +170,49 @@
         </v-card>
       </v-dialog>
 
+      <v-dialog v-model="search_dialog" max-width="450">
+        <v-card>
+          <v-card-title class="headline">
+            Пошук людей
+
+            <v-spacer></v-spacer>
+
+            <v-btn elevation="0" icon @click="search_dialog = !search_dialog">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-card-title>
+
+          <v-list three-line>
+            <v-list-item
+              v-ripple
+              v-for="(user, i) in users"
+              :key="i"
+              @click="selectUser(user.id)"
+            >
+              <v-list-item-icon>
+                <v-avatar color="accent" size="50" v-if="!user.profile_photo">
+                  <span class="white--text">
+                    {{ user.firstname[0] }} {{ user.lastname[0] }}
+                  </span>
+                </v-avatar>
+                <v-avatar size="50" v-else>
+                  <img :src="user.profile_photo" />
+                </v-avatar>
+              </v-list-item-icon>
+
+              <v-list-item-content>
+                <v-list-item-title>
+                  {{ user.firstname }} {{ user.lastname }}
+                </v-list-item-title>
+                <v-list-item-subtitle>
+                  {{ user.bio ? user.bio : user.email }}
+                </v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-dialog>
+
       <!-- <v-window v-model="view" style="position: fixed; top: 0; left: 0">
         <v-window-item :value="'chats'">
           <h4>1 сторінка</h4>
@@ -190,7 +233,7 @@
                 ></v-app-bar-nav-icon>
                 <v-toolbar-title>Messenger</v-toolbar-title>
                 <v-spacer></v-spacer>
-                <v-btn icon>
+                <v-btn icon @click="search_dialog = true">
                   <v-icon>mdi-magnify</v-icon>
                 </v-btn>
               </v-app-bar>
@@ -382,7 +425,10 @@
         </div>
 
         <h3 v-else class="text-muted align-self-center my-auto">
-          Оберіть чат для спілкування
+          <span v-if="!chats.length">
+            Знайдіть людей та почніть спілкування
+          </span>
+          <span v-else>Оберіть чат для спілкування</span>
         </h3>
       </div>
     </div>
@@ -396,6 +442,7 @@ export default {
     return {
       chats: {},
       messages: {},
+      users: {},
       view: "chats",
       chat_id: 0,
       last_chat_id: 0,
@@ -403,10 +450,12 @@ export default {
       loading: true,
       clicked: false,
       dialog: false,
+      search_dialog: false,
       profile: {},
       user_id: null,
       edit_profile: false,
       messageTextBox: "",
+      to_id: 0,
     };
   },
   methods: {
@@ -457,6 +506,24 @@ export default {
       let scroll = await document.getElementById("messages");
       scroll.scrollTop = scroll.scrollHeight;
     },
+    selectUser: async function (id) {
+      await fetch(`/api/sendMessage/${localStorage.token}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from_id: this.user_id,
+          to_id: id,
+          message: "Привіт, розпочнемо спілкування!",
+        }),
+      });
+
+      let res = await fetch(`/api/getChats/${localStorage.token}`);
+      this.chats = await res.json();
+
+      this.chat_id = 1;
+    },
   },
   async mounted() {
     if (!localStorage.token) {
@@ -483,7 +550,10 @@ export default {
     // CHATS
     res = await fetch(`/api/getChats/${localStorage.token}`);
     this.chats = await res.json();
-    // console.log(this.chats);
+
+    if (!this.chats.length) {
+      this.search_dialog = true;
+    }
 
     setTimeout(() => (this.loading = false), 2000);
 
@@ -524,15 +594,23 @@ export default {
       let res = await fetch(`/api/getChats/${localStorage.token}`);
       let data = await res.json();
 
-      if (this.chats[0].from_id != data[0].from_id) {
-        console.log("New chat");
+      if (data.length) {
+        if (this.chats[0].from_id != data[0].from_id && this.chat_id > 1) {
+          console.log("New chat");
 
-        this.chats = data;
-        this.chat_id++;
-      } else {
-        this.chats = data;
+          this.chats = data;
+          this.chat_id++;
+        } else {
+          this.chats = data;
+        }
       }
     }, 1000);
+
+    // Search Users
+    res = await fetch(`/api/getUsers`);
+    this.users = await res.json();
+
+    this.users = this.users.filter((user) => user.id !== this.user_id);
   },
   watch: {
     chat_id: async function (value) {
