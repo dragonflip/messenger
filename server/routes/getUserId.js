@@ -17,7 +17,7 @@ router.get("/:token", async (req, res) => {
       }"`
     );
 
-    res.json(user_id[0]);
+    res.json({ user_id: user_id[0].id });
   } else {
     res.json({ user_id: null });
   }

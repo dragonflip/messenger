@@ -128,6 +128,11 @@ export default {
     async emailForm() {
       // Enter email
       if (this.formStep === 1) {
+        if (!this.form.email.replace(/\s/g, "").length) {
+          this.email = "";
+          return;
+        }
+
         this.submitBlock = true;
 
         const res = await fetch("/api/sendCode", {
@@ -146,7 +151,13 @@ export default {
       }
       // Enter login code
       else if (this.formStep === 2) {
+        if (!this.form.login_code.replace(/\s/g, "").length) {
+          this.form.login_code = "";
+          return;
+        }
+
         this.submitBlock = true;
+        this.okLogin = true;
 
         const res = await fetch("/api/signIn", {
           method: "POST",
@@ -168,8 +179,6 @@ export default {
           if (this.needRegister) {
             this.formStep++;
           } else {
-            this.okLogin = true;
-
             setTimeout(() => {
               localStorage.token = data.token;
               this.$router.push("/");
@@ -177,12 +186,23 @@ export default {
           }
         } else {
           this.loginCodeError = "Не правильний код підтвердження";
+          this.okLogin = false;
         }
 
         this.submitBlock = false;
       } // Registration
       else if (this.formStep === 3) {
+        if (!this.form.firstname.replace(/\s/g, "").length) {
+          this.form.firstname = "";
+          return;
+        }
+        if (!this.form.lastname.replace(/\s/g, "").length) {
+          this.form.lastname = "";
+          return;
+        }
+
         this.submitBlock = true;
+        this.okLogin = true;
 
         const res = await fetch("/api/signUp", {
           method: "POST",
@@ -200,8 +220,6 @@ export default {
         console.log(data);
 
         if (data.token !== null) {
-          this.okLogin = true;
-
           setTimeout(() => {
             localStorage.token = data.token;
             this.$router.push("/");

@@ -30,13 +30,12 @@
           </v-card-title>
 
           <img
-            src="https://telegram.org/file/464001801/4/pPObBDJVv-M.32191.png/9963667389a3218249"
-            style="
-              width: 128px;
-              height: 128px;
-              border: 3px dashed #007bff;
-              border-radius: 50%;
+            :src="
+              profile.profile_photo
+                ? profile.profile_photo
+                : 'https://telegram.org/file/464001801/4/pPObBDJVv-M.32191.png/9963667389a3218249'
             "
+            style="width: 128px; height: 128px; border-radius: 50%"
             class="d-flex mx-auto"
           />
 
@@ -135,7 +134,7 @@
               <v-list-item-content>
                 <v-list-item-title>
                   <span v-if="!edit_profile">
-                    <span v-if="profile.bio"></span>
+                    <span v-if="profile.bio">{{ profile.bio }}</span>
                     <span v-else>Про себе</span>
                   </span>
 
@@ -152,7 +151,8 @@
                   </form>
                 </v-list-item-title>
                 <v-list-item-subtitle v-if="!edit_profile">
-                  Кілька слів про себе
+                  <span v-if="profile.bio">Про себе</span>
+                  <span v-else>Кілька слів про себе</span>
                 </v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
@@ -230,11 +230,14 @@
                 :key="i"
               >
                 <div class="photo">
-                  <v-avatar color="accent" size="55"
-                    ><span class="white--text"
-                      >{{ chat.firstname[0] }} {{ chat.lastname[0] }}</span
-                    ></v-avatar
-                  >
+                  <v-avatar color="accent" size="55" v-if="!chat.profile_photo">
+                    <span class="white--text">
+                      {{ chat.firstname[0] }} {{ chat.lastname[0] }}
+                    </span>
+                  </v-avatar>
+                  <v-avatar size="55" v-else>
+                    <img :src="chat.profile_photo" />
+                  </v-avatar>
                 </div>
                 <div class="message-details w-100">
                   <div class="message-title d-flex justify-space-between">
@@ -276,11 +279,18 @@
       <div class="col-lg-8 p-0 d-none d-md-flex flex-column">
         <div class="nav_bar d-flex" v-if="chat_id > 0">
           <v-app-bar flat color="white">
-            <v-avatar color="accent" size="50">
+            <v-avatar
+              color="accent"
+              size="50"
+              v-if="!chats[chat_id - 1].profile_photo"
+            >
               <span class="white--text">
                 {{ chats[chat_id - 1].firstname[0] }}
                 {{ chats[chat_id - 1].lastname[0] }}
               </span>
+            </v-avatar>
+            <v-avatar size="50" v-else>
+              <img :src="chats[chat_id - 1].profile_photo" />
             </v-avatar>
 
             <h5 class="ml-2 mb-0 d-flex flex-column">
@@ -296,6 +306,12 @@
                 >В мережі {{ chats[chat_id - 1].was_online }}</span
               >
             </h5>
+
+            <v-spacer></v-spacer>
+
+            <v-btn elevation="0" icon>
+              <v-icon>mdi-dots-vertical</v-icon>
+            </v-btn>
           </v-app-bar>
         </div>
 
@@ -305,6 +321,7 @@
         >
           <div
             class="messages d-flex flex-column px-5 mb-5"
+            id="messages"
             style="height: calc(100vh - 160px); overflow-y: auto"
           >
             <div
@@ -341,10 +358,9 @@
           <div class="send_message w-100 mb-5 d-flex">
             <form class="d-flex w-100" @submit.prevent="send_message()">
               <v-text-field
-                v-model.trim="messageTextBox"
+                v-model="messageTextBox"
                 type="text"
                 label="Повідомлення"
-                required
                 autofocus
                 hide-details="auto"
                 autocomplete="off"
@@ -405,6 +421,12 @@ export default {
       }, 1000);
     },
     send_message: async function () {
+      if (!this.messageTextBox.replace(/\s/g, "").length) {
+        this.messageTextBox = "";
+
+        return;
+      }
+
       await fetch(`/api/sendMessage/${localStorage.token}`, {
         method: "POST",
         headers: {
@@ -417,13 +439,23 @@ export default {
         }),
       });
 
+      // let last_chat_id = this.chat_id;
+
       let res = await fetch(
         `/api/getMessages/${localStorage.token}/${
           this.chats[this.chat_id - 1].user_id
         }`
       );
       this.messages = await res.json();
+
+      res = await fetch(`/api/getChats/${localStorage.token}`);
+      this.chats = await res.json();
+
       this.messageTextBox = "";
+      this.chat_id = 1;
+
+      let scroll = await document.getElementById("messages");
+      scroll.scrollTop = scroll.scrollHeight;
     },
   },
   async mounted() {
@@ -436,10 +468,11 @@ export default {
     // USER_ID
     let res = await fetch(`/api/getUserID/${localStorage.token}`);
     const data = await res.json();
-    this.user_id = data.id;
 
     // MY PROFILE
-    if (this.user_id !== null) {
+    if (data.user_id !== null) {
+      this.user_id = data.user_id;
+
       let res = await fetch(`/api/getProfile/${this.user_id}`);
       this.profile = await res.json();
     } else {
@@ -456,25 +489,50 @@ export default {
 
     // Update online status
     setInterval(async () => {
-      if (!document.hidden) {
-        let res = await fetch(`/api/getUserID/${localStorage.token}`);
-        const data = await res.json();
-        this.user_id = data.id;
-      }
-    }, 60000);
+      // if (!document.hidden) {
+      let res = await fetch(`/api/getUserID/${localStorage.token}`);
+      const data = await res.json();
+      this.user_id = data.user_id;
+      // }
+    }, 59000);
 
     // Check new messages
     setInterval(async () => {
-      let res = await fetch(
-        `/api/getMessages/${localStorage.token}/${
-          this.chats[this.chat_id - 1].user_id
-        }`
-      );
-      this.messages = await res.json();
+      if (this.chat_id) {
+        let res = await fetch(
+          `/api/getMessages/${localStorage.token}/${
+            this.chats[this.chat_id - 1].user_id
+          }`
+        );
+        let data = await res.json();
 
-      res = await fetch(`/api/getChats/${localStorage.token}`);
-      this.chats = await res.json();
-    }, 2000);
+        if (data.length != this.messages.length) {
+          this.messages = data;
+
+          let scroll = await document.getElementById("messages");
+          scroll.scrollTop = scroll.scrollHeight;
+        }
+
+        this.messages = data;
+
+        // let scroll = await document.getElementById("messages");
+        // if (scroll.scrollTop != scroll.scrollHeight) {
+        //   scroll.scrollTop = scroll.scrollHeight;
+        // }
+      }
+
+      let res = await fetch(`/api/getChats/${localStorage.token}`);
+      let data = await res.json();
+
+      if (this.chats[0].from_id != data[0].from_id) {
+        console.log("New chat");
+
+        this.chats = data;
+        this.chat_id++;
+      } else {
+        this.chats = data;
+      }
+    }, 1000);
   },
   watch: {
     chat_id: async function (value) {
@@ -492,9 +550,8 @@ export default {
 
         this.chats[value - 1].unread_count = 0;
 
-        document
-          .querySelector(".messages")
-          .scrollTo(0, document.querySelector(".messages").scrollHeight);
+        let scroll = await document.getElementById("messages");
+        scroll.scrollTop = scroll.scrollHeight;
       } else {
         this.view = "chats";
       }
