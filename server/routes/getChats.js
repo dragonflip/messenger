@@ -20,8 +20,14 @@ router.get("/:token", async (req, res) => {
   moment.locale("uk");
 
   chats.forEach((chat) => {
-    // chat.sent_date = moment.unix(chat.sent_date).fromNow();
-    chat.sent_date = moment.unix(chat.sent_date).format("HH:mm");
+    if (
+      moment.unix(moment().unix()).format("DD.MM.YYYY") !=
+      moment.unix(chat.sent_date).format("DD.MM.YYYY")
+    ) {
+      chat.sent_date = moment.unix(chat.sent_date).format("DD.MM.YYYY");
+    } else {
+      chat.sent_date = moment.unix(chat.sent_date).format("HH:mm");
+    }
 
     if (chat.was_online > moment().unix()) {
       chat.online = true;
