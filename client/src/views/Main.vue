@@ -705,9 +705,15 @@ export default {
       this.$router.push("/login");
     }
 
-    window.onresize = function () {
-      let scroll = document.getElementById("messages");
-      scroll.scrollTop = scroll.scrollHeight;
+    window.onresize = () => {
+      if (this.chat_id > 0) {
+        let scroll = document.getElementById("messages");
+        scroll.scrollTop = scroll.scrollHeight;
+      }
+    };
+
+    window.onpopstate = () => {
+      this.chat_id = 0;
     };
 
     console.log(`Mobile device: ${this.$vuetify.breakpoint.mobile}`);
@@ -827,6 +833,13 @@ export default {
 
         let scroll = await document.getElementById("messages");
         scroll.scrollTop = scroll.scrollHeight;
+
+        if (
+          location.pathname != "/messages" &&
+          this.$vuetify.breakpoint.mobile
+        ) {
+          history.pushState({}, null, "/messages");
+        }
       } else {
         this.view = "chats";
       }
