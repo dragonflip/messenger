@@ -85,7 +85,7 @@
                         v-model.trim="profile.firstname"
                         name="firstname"
                         label="Ім'я"
-                        autofocus
+                        :autofocus="!$vuetify.breakpoint.mobile"
                         required
                         minlength="2"
                         maxlength="20"
@@ -516,7 +516,6 @@
               <v-textarea
                 v-model="messageTextBox"
                 label="Повідомлення"
-                :autofocus="!this.$vuetify.breakpoint.mobile"
                 hide-details="auto"
                 autocomplete="off"
                 class="ml-5"
@@ -572,7 +571,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.1.10",
+      version: "0.1.11",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
@@ -752,7 +751,7 @@ export default {
 
         if (this.user_id === null) {
           localStorage.removeItem("token");
-          this.$router.push("/");
+          this.$router.push("/login");
         }
       }
     }, 55000);
