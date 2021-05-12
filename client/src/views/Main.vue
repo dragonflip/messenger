@@ -28,7 +28,14 @@
 
             <v-spacer></v-spacer>
 
-            <v-btn elevation="0" icon @click="profile_dialog = !profile_dialog">
+            <v-btn
+              elevation="0"
+              icon
+              @click="
+                profile_dialog = !profile_dialog;
+                edit_profile = false;
+              "
+            >
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
@@ -60,116 +67,119 @@
           </v-btn>
 
           <v-list three-line>
-            <v-list-item v-ripple="!edit_profile">
-              <v-list-item-icon>
-                <v-icon> mdi-account-outline </v-icon>
-              </v-list-item-icon>
+            <form @submit.prevent="editProfile()">
+              <v-list-item v-ripple="!edit_profile">
+                <v-list-item-icon>
+                  <v-icon> mdi-account-outline </v-icon>
+                </v-list-item-icon>
 
-              <v-list-item-content>
-                <v-list-item-title>
-                  <span v-if="!edit_profile">
-                    {{ profile.firstname }} {{ profile.lastname }}
-                  </span>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    <span v-if="!edit_profile">
+                      {{ profile.firstname }} {{ profile.lastname }}
+                    </span>
 
-                  <form class="d-flex py-1" v-else>
-                    <v-text-field
-                      type="text"
-                      v-model.trim="profile.firstname"
-                      name="firstname"
-                      label="Ім'я"
-                      autofocus
-                      required
-                      minlength="2"
-                      maxlength="20"
-                      autocomplete="off"
-                      hide-details="auto"
-                    ></v-text-field>
-                    <v-text-field
-                      type="text"
-                      v-model.trim="profile.lastname"
-                      name="lastname"
-                      label="Прізвище"
-                      minlength="2"
-                      maxlength="20"
-                      autocomplete="off"
-                      hide-details="auto"
-                      class="ml-4"
-                    ></v-text-field>
-                  </form>
-                </v-list-item-title>
-                <v-list-item-subtitle v-if="!edit_profile">
-                  Ім'я та прізвище
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
+                    <div class="d-flex py-1" v-else>
+                      <v-text-field
+                        type="text"
+                        v-model.trim="profile.firstname"
+                        name="firstname"
+                        label="Ім'я"
+                        autofocus
+                        required
+                        minlength="2"
+                        maxlength="20"
+                        autocomplete="off"
+                        hide-details="auto"
+                      ></v-text-field>
+                      <v-text-field
+                        type="text"
+                        v-model.trim="profile.lastname"
+                        name="lastname"
+                        label="Прізвище"
+                        minlength="2"
+                        maxlength="20"
+                        autocomplete="off"
+                        hide-details="auto"
+                        class="ml-4"
+                      ></v-text-field>
+                    </div>
+                  </v-list-item-title>
+                  <v-list-item-subtitle v-if="!edit_profile">
+                    Ім'я та прізвище
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
 
-            <v-list-item v-ripple="!edit_profile">
-              <v-list-item-icon>
-                <v-icon> mdi-email-outline </v-icon>
-              </v-list-item-icon>
+              <v-list-item v-ripple="!edit_profile">
+                <v-list-item-icon>
+                  <v-icon> mdi-email-outline </v-icon>
+                </v-list-item-icon>
 
-              <v-list-item-content>
-                <v-list-item-title>
-                  <span v-if="!edit_profile">{{ profile.email }}</span>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    <span v-if="!edit_profile">{{ profile.email }}</span>
 
-                  <form class="d-flex py-1" v-else>
-                    <v-text-field
-                      type="email"
-                      v-model.trim="profile.email"
-                      name="email"
-                      label="E-mail"
-                      required
-                      autocomplete="off"
-                      hide-details="auto"
-                    ></v-text-field>
-                  </form>
-                </v-list-item-title>
-                <v-list-item-subtitle v-if="!edit_profile">
-                  E-mail
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
+                    <div class="d-flex py-1" v-else>
+                      <v-text-field
+                        type="email"
+                        v-model.trim="profile.email"
+                        name="email"
+                        label="E-mail"
+                        required
+                        autocomplete="off"
+                        hide-details="auto"
+                      ></v-text-field>
+                    </div>
+                  </v-list-item-title>
+                  <v-list-item-subtitle v-if="!edit_profile">
+                    E-mail
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
 
-            <v-list-item v-ripple="!edit_profile">
-              <v-list-item-icon>
-                <v-icon> mdi-information-outline </v-icon>
-              </v-list-item-icon>
+              <v-list-item v-ripple="!edit_profile">
+                <v-list-item-icon>
+                  <v-icon> mdi-information-outline </v-icon>
+                </v-list-item-icon>
 
-              <v-list-item-content>
-                <v-list-item-title>
-                  <span v-if="!edit_profile">
-                    <span v-if="profile.bio">{{ profile.bio }}</span>
-                    <span v-else>Про себе</span>
-                  </span>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    <span v-if="!edit_profile">
+                      <span v-if="profile.bio">{{ profile.bio }}</span>
+                      <span v-else>Про себе</span>
+                    </span>
 
-                  <form class="d-flex py-1" v-else>
-                    <v-text-field
-                      type="text"
-                      v-model.trim="profile.bio"
-                      name="bio"
-                      label="Про себе"
-                      required
-                      autocomplete="off"
-                      hide-details="auto"
-                    ></v-text-field>
-                  </form>
-                </v-list-item-title>
-                <v-list-item-subtitle v-if="!edit_profile">
-                  <span v-if="profile.bio">Про себе</span>
-                  <span v-else>Кілька слів про себе</span>
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
+                    <div class="d-flex py-1" v-else>
+                      <v-text-field
+                        type="text"
+                        v-model.trim="profile.bio"
+                        name="bio"
+                        label="Про себе"
+                        required
+                        autocomplete="off"
+                        hide-details="auto"
+                      ></v-text-field>
+                    </div>
+                  </v-list-item-title>
+                  <v-list-item-subtitle v-if="!edit_profile">
+                    <span v-if="profile.bio">Про себе</span>
+                    <span v-else>Кілька слів про себе</span>
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
 
-            <v-btn
-              fab
-              elevation="0"
-              color="primary"
-              v-if="edit_profile"
-              class="d-flex ml-auto mr-5 mb-2"
-            >
-              <v-icon>mdi-check</v-icon>
-            </v-btn>
+              <v-btn
+                type="submit"
+                fab
+                elevation="0"
+                color="primary"
+                v-if="edit_profile"
+                class="d-flex ml-auto mr-5 mb-2"
+              >
+                <v-icon>mdi-check</v-icon>
+              </v-btn>
+            </form>
           </v-list>
         </v-card>
       </v-dialog>
@@ -271,10 +281,10 @@
                 <v-icon color="red" class="pr-2">mdi-logout</v-icon>
                 <span class="red--text"> Вийти</span></v-list-item
               >
-              <v-divider></v-divider>
+              <v-divider class="mt-0"></v-divider>
               <v-list-item>
                 <v-icon class="pr-2">mdi-information-outline</v-icon>
-                <span>{{ version }}</span>
+                <span>Версія: {{ version }}</span>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -468,11 +478,15 @@
               :key="i"
               :class="message.from_id === user_id ? 'to' : 'from'"
               style="max-width: 80%"
-              :style="$vuetify.breakpoint.mobile ? 'user-select: none;' : ''"
               @contextmenu="messageContext($event, message.from_id, message.id)"
               :id="message.id"
             >
-              <div class="message_text">{{ message.message }}</div>
+              <div
+                class="message_text"
+                :style="!$vuetify.breakpoint.mobile ? 'user-select: text' : ''"
+              >
+                {{ message.message }}
+              </div>
               <div class="message_time align-self-end ml-1">
                 {{ message.sent_date }}
               </div>
@@ -558,7 +572,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "v0.1.8",
+      version: "0.1.10",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
@@ -639,6 +653,22 @@ export default {
 
       this.users = this.users.filter((user) => user.id !== id);
     },
+    editProfile: async function () {
+      await fetch(`/api/editProfile/${localStorage.token}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstname: this.profile.firstname,
+          lastname: this.profile.lastname,
+          email: this.profile.email,
+          bio: this.profile.bio,
+        }),
+      });
+
+      this.edit_profile = false;
+    },
     messageContext: function (e, from_id, selected_message_id) {
       if (from_id === this.user_id) {
         e.preventDefault();
@@ -660,9 +690,6 @@ export default {
       window.getSelection().addRange(range);
       document.execCommand("copy");
       window.getSelection().removeAllRanges();
-
-      // document.getElementById(this.selected_message_id).select();
-      // document.execCommand("copy");
     },
     deleteMessage: async function () {
       await fetch(
@@ -883,7 +910,6 @@ export default {
 .message_text {
   word-break: break-all;
   white-space: pre-wrap;
-  user-select: text;
 }
 
 .from:before {
