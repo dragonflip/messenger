@@ -8,7 +8,11 @@
         v-if="loading"
       ></v-progress-linear>
 
-      <v-dialog v-model="dialog" max-width="450">
+      <v-dialog
+        v-model="profile_dialog"
+        max-width="450"
+        :fullscreen="$vuetify.breakpoint.mobile"
+      >
         <v-card>
           <v-card-title class="headline">
             Мій профіль
@@ -24,7 +28,7 @@
 
             <v-spacer></v-spacer>
 
-            <v-btn elevation="0" icon @click="dialog = !dialog">
+            <v-btn elevation="0" icon @click="profile_dialog = !profile_dialog">
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
@@ -170,7 +174,11 @@
         </v-card>
       </v-dialog>
 
-      <v-dialog v-model="search_dialog" max-width="450">
+      <v-dialog
+        v-model="search_dialog"
+        max-width="450"
+        :fullscreen="$vuetify.breakpoint.mobile"
+      >
         <v-card>
           <v-card-title class="headline">
             Пошук людей
@@ -224,11 +232,17 @@
         </v-window-item>
       </v-window> -->
 
-      <div class="col-lg-4 p-0">
+      <div
+        class="col-lg-4 p-0"
+        v-if="
+          ($vuetify.breakpoint.mobile && !chat_id) ||
+          !$vuetify.breakpoint.mobile
+        "
+      >
         <div class="nav_bar d-flex">
           <v-menu offset-y min-width="300">
             <template v-slot:activator="{ on }">
-              <v-app-bar flat color="white" height="64">
+              <v-app-bar flat color="white">
                 <v-app-bar-nav-icon
                   @click="menu = !menu"
                   v-on="on"
@@ -241,7 +255,7 @@
               </v-app-bar>
             </template>
             <v-list>
-              <v-list-item @click="dialog = true">
+              <v-list-item @click="profile_dialog = true">
                 <v-icon class="pr-2">mdi-account-outline</v-icon>
                 Профіль
               </v-list-item>
@@ -257,6 +271,11 @@
                 <v-icon color="red" class="pr-2">mdi-logout</v-icon>
                 <span class="red--text"> Вийти</span></v-list-item
               >
+              <v-divider></v-divider>
+              <v-list-item>
+                <v-icon class="pr-2">mdi-information-outline</v-icon>
+                <span>{{ version }}</span>
+              </v-list-item>
             </v-list>
           </v-menu>
         </div>
@@ -331,12 +350,28 @@
         </div>
       </div>
 
-      <div class="col-lg-8 p-0 d-none d-md-flex flex-column">
+      <div
+        class="col-lg-8 p-0 d-flex flex-column"
+        v-if="
+          ($vuetify.breakpoint.mobile && chat_id > 0) ||
+          !$vuetify.breakpoint.mobile
+        "
+      >
         <div class="nav_bar d-flex" v-if="chat_id > 0">
           <v-app-bar flat color="white">
+            <v-btn
+              elevation="0"
+              icon
+              v-if="$vuetify.breakpoint.mobile"
+              @click="chat_id = 0"
+              class="mr-1"
+            >
+              <v-icon>mdi-arrow-left</v-icon>
+            </v-btn>
+
             <v-avatar
               color="accent"
-              size="50"
+              :size="$vuetify.breakpoint.mobile ? '45' : '50'"
               v-if="!chats[chat_id - 1].profile_photo"
             >
               <span class="white--text">
@@ -344,20 +379,34 @@
                 {{ chats[chat_id - 1].lastname[0] }}
               </span>
             </v-avatar>
-            <v-avatar size="50" v-else>
+            <v-avatar :size="$vuetify.breakpoint.mobile ? '45' : '50'" v-else>
               <img :src="chats[chat_id - 1].profile_photo" />
             </v-avatar>
 
-            <h5 class="ml-2 mb-0 d-flex flex-column">
+            <h5
+              class="ml-2 mb-0 d-flex flex-column"
+              :style="$vuetify.breakpoint.mobile ? 'font-size: 100%' : ''"
+            >
               {{ chats[chat_id - 1].firstname }}
               {{ chats[chat_id - 1].lastname }}
               <span
                 class="green--text"
-                style="font-size: 60%"
+                :style="
+                  $vuetify.breakpoint.mobile
+                    ? 'font-size: 70%'
+                    : 'font-size: 60%'
+                "
                 v-if="chats[chat_id - 1].online"
                 >Онлайн</span
               >
-              <span class="grey--text" style="font-size: 60%" v-else
+              <span
+                class="grey--text"
+                :style="
+                  $vuetify.breakpoint.mobile
+                    ? 'font-size: 70%'
+                    : 'font-size: 60%'
+                "
+                v-else
                 >В мережі {{ chats[chat_id - 1].was_online }}</span
               >
             </h5>
@@ -377,7 +426,12 @@
           <div
             class="messages d-flex flex-column px-5 mb-5"
             id="messages"
-            style="height: calc(100vh - 160px); overflow-y: auto"
+            style="overflow-y: auto"
+            :style="
+              $vuetify.breakpoint.mobile
+                ? 'height: calc(100vh - 140px)'
+                : 'height: calc(100vh - 160px)'
+            "
           >
             <div
               class="d-flex"
@@ -410,7 +464,10 @@
               </span>
             </div>
           </div>
-          <div class="send_message w-100 mb-5 d-flex">
+          <div
+            class="send_message w-100 d-flex"
+            :class="!$vuetify.breakpoint.mobile ? 'mb-5' : ''"
+          >
             <form class="d-flex w-100" @submit.prevent="send_message()">
               <v-textarea
                 v-model="messageTextBox"
@@ -463,7 +520,7 @@ export default {
       menu: false,
       loading: true,
       clicked: false,
-      dialog: false,
+      profile_dialog: false,
       search_dialog: false,
       profile: {},
       user_id: null,
@@ -471,6 +528,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
+      version: "v0.1.7",
     };
   },
   methods: {
