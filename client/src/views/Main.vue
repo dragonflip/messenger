@@ -600,6 +600,9 @@ export default {
       this.chats = await res.json();
 
       this.chat_id = 1;
+      this.search_dialog = false;
+
+      this.users = this.users.filter((user) => user.id !== id);
     },
   },
   async mounted() {
