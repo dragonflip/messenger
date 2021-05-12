@@ -1,5 +1,5 @@
 <template>
-  <div class="container-lg">
+  <div class="container-lg" style="user-select: none">
     <div class="row" style="margin: 0 -15px">
       <v-progress-linear
         indeterminate
@@ -433,16 +433,46 @@
                 : 'height: calc(100vh - 160px)'
             "
           >
+            <v-menu
+              v-model="messageMenu"
+              :position-x="messageMenuX"
+              :position-y="messageMenuY"
+              absolute
+              offset-y
+            >
+              <v-list>
+                <v-list-item @click="copyMessage">
+                  <v-list-item-title>
+                    <v-icon class="pr-2">mdi-content-copy</v-icon>
+                    Копіювати
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item>
+                  <v-list-item-title>
+                    <v-icon class="pr-2">mdi-pencil-outline</v-icon>
+                    Редагувати
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item @click="deleteMessage">
+                  <v-list-item-title class="red--text">
+                    <v-icon class="red--text pr-2">mdi-delete-outline</v-icon>
+                    Видалити
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+
             <div
               class="d-flex"
               v-for="(message, i) in messages"
               :key="i"
               :class="message.from_id === user_id ? 'to' : 'from'"
               style="max-width: 80%"
+              :style="$vuetify.breakpoint.mobile ? 'user-select: none;' : ''"
+              @contextmenu="messageContext($event, message.from_id, message.id)"
+              :id="message.id"
             >
-              <div class="message_text">
-                {{ message.message }}
-              </div>
+              <div class="message_text">{{ message.message }}</div>
               <div class="message_time align-self-end ml-1">
                 {{ message.sent_date }}
               </div>
@@ -472,7 +502,7 @@
               <v-textarea
                 v-model="messageTextBox"
                 label="Повідомлення"
-                autofocus
+                :autofocus="!this.$vuetify.breakpoint.mobile"
                 hide-details="auto"
                 autocomplete="off"
                 class="ml-5"
@@ -528,7 +558,11 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "v0.1.7",
+      version: "v0.1.8",
+      messageMenu: false,
+      messageMenuX: 0,
+      messageMenuY: 0,
+      selected_message_id: 0,
     };
   },
   methods: {
@@ -562,6 +596,7 @@ export default {
         });
 
         this.messageTextBox = "";
+        document.getElementById("messageTextBox").focus();
 
         // let last_chat_id = this.chat_id;
 
@@ -604,11 +639,49 @@ export default {
 
       this.users = this.users.filter((user) => user.id !== id);
     },
+    messageContext: function (e, from_id, selected_message_id) {
+      if (from_id === this.user_id) {
+        e.preventDefault();
+
+        this.messageMenu = false;
+        this.messageMenuX = e.clientX;
+        this.messageMenuY = e.clientY;
+        this.$nextTick(() => {
+          this.messageMenu = true;
+        });
+
+        this.selected_message_id = selected_message_id;
+      }
+    },
+    copyMessage: function () {
+      const range = document.createRange();
+      range.selectNode(document.getElementById(this.selected_message_id));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      document.execCommand("copy");
+      window.getSelection().removeAllRanges();
+
+      // document.getElementById(this.selected_message_id).select();
+      // document.execCommand("copy");
+    },
+    deleteMessage: async function () {
+      await fetch(
+        `/api/deleteMessage/${localStorage.token}/${this.selected_message_id}`,
+        {
+          method: "DELETE",
+        }
+      );
+    },
   },
   async mounted() {
     if (!localStorage.token) {
       this.$router.push("/login");
     }
+
+    window.onresize = function () {
+      let scroll = document.getElementById("messages");
+      scroll.scrollTop = scroll.scrollHeight;
+    };
 
     console.log(`Mobile device: ${this.$vuetify.breakpoint.mobile}`);
 
@@ -645,6 +718,7 @@ export default {
         this.user_id = data.user_id;
 
         if (this.user_id === null) {
+          localStorage.removeItem("token");
           this.$router.push("/");
         }
       }
@@ -720,10 +794,12 @@ export default {
 
         this.chats[value - 1].unread_count = 0;
 
+        if (!this.$vuetify.breakpoint.mobile) {
+          document.getElementById("messageTextBox").focus();
+        }
+
         let scroll = await document.getElementById("messages");
         scroll.scrollTop = scroll.scrollHeight;
-
-        document.getElementById("messageTextBox").focus();
       } else {
         this.view = "chats";
       }
@@ -806,7 +882,8 @@ export default {
 
 .message_text {
   word-break: break-all;
-  white-space: pre-line;
+  white-space: pre-wrap;
+  user-select: text;
 }
 
 .from:before {
