@@ -250,7 +250,7 @@
         "
       >
         <div class="nav_bar d-flex">
-          <v-menu offset-y min-width="300">
+          <v-menu offset-y min-width="280">
             <template v-slot:activator="{ on }">
               <v-app-bar flat color="white">
                 <v-app-bar-nav-icon
@@ -281,10 +281,10 @@
                 <v-icon color="red" class="pr-2">mdi-logout</v-icon>
                 <span class="red--text"> Вийти</span></v-list-item
               >
-              <v-divider class="mt-0"></v-divider>
+              <v-divider class="my-2"></v-divider>
               <v-list-item>
                 <v-icon class="pr-2">mdi-information-outline</v-icon>
-                <span>Версія: {{ version }}</span>
+                <span>v{{ version }}</span>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -571,7 +571,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.1.11",
+      version: "0.2.0",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,

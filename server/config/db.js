@@ -11,13 +11,21 @@ const db = mysql
   .promise();
 
 db.connect().then(async () => {
-  console.log("MySQL connected");
-
   await db.query(`SET sql_mode = ''`);
 
   setInterval(function () {
     db.query("SELECT 1");
   }, 60000);
+
+  console.log("MySQL connected");
 });
+
+db.esc = function (arg) {
+  if (db.escape(arg).slice(0)[0] == "'" && db.escape(arg).slice(-1)[0]) {
+    return db.escape(arg).slice(1, -1);
+  } else {
+    return db.escape(arg);
+  }
+};
 
 module.exports = db;
