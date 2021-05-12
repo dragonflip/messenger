@@ -834,11 +834,8 @@ export default {
         let scroll = await document.getElementById("messages");
         scroll.scrollTop = scroll.scrollHeight;
 
-        if (
-          location.pathname != "/messages" &&
-          this.$vuetify.breakpoint.mobile
-        ) {
-          history.pushState({}, null, "/messages");
+        if (location.hash != "#messages" && this.$vuetify.breakpoint.mobile) {
+          history.pushState({}, null, "#messages");
         }
       } else {
         this.view = "chats";
