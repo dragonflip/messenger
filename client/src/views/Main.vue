@@ -485,7 +485,7 @@
                 class="message_text"
                 :style="!$vuetify.breakpoint.mobile ? 'user-select: text' : ''"
               >
-                {{ message.message }}
+                <span>{{ message.message }}</span>
               </div>
               <div class="message_time align-self-end ml-1">
                 {{ message.sent_date }}
