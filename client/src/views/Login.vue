@@ -13,16 +13,21 @@
         <h2 style="margin-top: 30px">
           <span v-if="formStep === 1">Увійдіть в Messenger</span>
           <span v-if="formStep === 2">{{ form.email }}</span>
-          <span v-if="formStep === 3" style="font-size: 95%"
-            >Вітаємо, як Вас звати?</span
-          >
+          <span v-if="formStep === 3" style="font-size: 95%">
+            Вітаємо, як Вас звати?
+          </span>
         </h2>
         <p class="text-muted" style="margin-bottom: 20px">
           <span v-if="formStep === 1">Для продовження введіть свій E-mail</span>
-          <span v-if="formStep === 2">Ми надіслали Вам код підтвердження</span>
-          <span v-if="formStep === 3"
-            >Введіть ім'я та почніть спілкування!</span
-          >
+          <span v-if="formStep === 2">
+            <span v-if="checkSpam">
+              Перевірте код підтвердження у папці Спам
+            </span>
+            <span v-else>Ми надіслали Вам код підтвердження</span>
+          </span>
+          <span v-if="formStep === 3">
+            Введіть ім'я та почніть спілкування!
+          </span>
         </p>
 
         <form @submit.prevent="!submitBlock ? emailForm() : ''">
@@ -96,8 +101,8 @@
             type="submit"
             :loading="okLogin"
           >
-            <span v-if="formStep === 1 || needRegister">Продовжити</span>
-            <span v-else-if="formStep === 3">Почати спілкування</span>
+            <span v-if="formStep === 3">Почати спілкування</span>
+            <span v-else-if="formStep === 1 || needRegister">Продовжити</span>
             <span v-else>Увійти</span>
           </v-btn>
         </form>
@@ -122,6 +127,7 @@ export default {
       needRegister: false,
       loginCodeError: "",
       okLogin: false,
+      checkSpam: false,
     };
   },
   methods: {
@@ -148,6 +154,10 @@ export default {
         this.formStep++;
 
         this.submitBlock = false;
+
+        setTimeout(() => {
+          this.checkSpam = true;
+        }, 30000);
       }
       // Enter login code
       else if (this.formStep === 2) {
@@ -232,8 +242,6 @@ export default {
     },
   },
   mounted() {
-    localStorage.removeItem("login");
-
     if (localStorage.token) {
       this.$router.push("/");
     }

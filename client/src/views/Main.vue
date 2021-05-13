@@ -156,9 +156,9 @@
                         v-model.trim="profile.bio"
                         name="bio"
                         label="Про себе"
-                        required
                         autocomplete="off"
                         hide-details="auto"
+                        maxlength="70"
                       ></v-text-field>
                     </div>
                   </v-list-item-title>
@@ -571,7 +571,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.2.0",
+      version: "0.2.1",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
@@ -702,6 +702,7 @@ export default {
   async mounted() {
     if (!localStorage.token) {
       this.$router.push("/login");
+      return;
     }
 
     window.onresize = () => {
