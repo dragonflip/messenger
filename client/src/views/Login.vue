@@ -112,6 +112,18 @@
 </template>
 
 <script>
+import { io } from "socket.io-client";
+const socket = io();
+
+socket.on("connect", () => {
+  console.log("connected");
+
+  socket.on("hello_user", () => {
+    console.log("hello_user");
+    socket.emit("hello", { user: "Petro" });
+  });
+});
+
 export default {
   name: "Login",
   data() {

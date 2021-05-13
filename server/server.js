@@ -21,14 +21,19 @@ app.use("/api/sendMessage", require("./routes/sendMessage"));
 app.use("/api/deleteMessage", require("./routes/deleteMessage"));
 app.use("/api/editMessage", require("./routes/editMessage"));
 
-
 app.use("/api/getUserID", require("./routes/getUserID"));
 app.use("/api/getUsers", require("./routes/getUsers"));
 app.use("/api/getProfile", require("./routes/getProfile"));
 app.use("/api/editProfile", require("./routes/editProfile"));
 
-io.on("connection", () => {
-  console.log("io connection established");
+io.on("connection", (socket) => {
+  console.log("Socket connected");
+
+  socket.emit("hello_user");
+
+  socket.on("hello", (data) => {
+    console.log(`${data.user} said hello!`);
+  });
 });
 
 // SPA
