@@ -47,7 +47,28 @@
                 : 'https://telegram.org/file/464001801/4/pPObBDJVv-M.32191.png/9963667389a3218249'
             "
             style="width: 128px; height: 128px; border-radius: 50%"
+            :style="edit_profile ? 'filter: brightness(0.7)' : ''"
             class="d-flex mx-auto"
+          />
+
+          <v-btn
+            v-if="edit_profile"
+            icon
+            width="128"
+            height="128"
+            style="position: absolute; top: 62px; left: calc(50% - 64px)"
+            @click="$refs.profile_photo_upload.click()"
+          >
+            <v-icon size="40">mdi-image-plus</v-icon>
+          </v-btn>
+
+          <input
+            type="file"
+            accept="image/jpeg, image/png, image/gif"
+            ref="profile_photo_upload"
+            label="Select File..."
+            v-show="false"
+            @change="profilePhotoUpload"
           />
 
           <h5 class="text-center mt-2">
@@ -583,7 +604,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.2.10",
+      version: "0.3.1",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
@@ -694,6 +715,7 @@ export default {
           lastname: this.profile.lastname,
           email: this.profile.email,
           bio: this.profile.bio,
+          profile_photo: this.profile.profile_photo,
         }),
       });
 
@@ -727,6 +749,18 @@ export default {
         {
           method: "DELETE",
         }
+      );
+    },
+    profilePhotoUpload: function (e) {
+      const reader = new FileReader();
+      reader.readAsDataURL(e.target.files[0]);
+
+      reader.addEventListener(
+        "load",
+        () => {
+          this.profile.profile_photo = reader.result;
+        },
+        false
       );
     },
   },
