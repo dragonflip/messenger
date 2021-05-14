@@ -11,7 +11,11 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Routes
-app.use("/api/sendCode", require("./routes/sendCode"));
+var sendCode = require("./sockets/sendCode");
+//var signIn = require("./sockets/signIn");
+//var signUp = require("./sockets/signUp");
+
+//app.use("/api/sendCode", require("./routes/sendCode"));
 app.use("/api/signIn", require("./routes/signIn"));
 app.use("/api/signUp", require("./routes/signUp"));
 
@@ -29,11 +33,14 @@ app.use("/api/editProfile", require("./routes/editProfile"));
 io.on("connection", (socket) => {
   console.log("Socket connected");
 
-  socket.emit("hello_user");
+  socket.on("sendCode", function(data){
+    sendCode(socket, data);
+  })
+  //socket.emit("hello_user");
 
-  socket.on("hello", (data) => {
+  /*socket.on("hello", (data) => {
     console.log(`${data.user} said hello!`);
-  });
+  });*/
 });
 
 // SPA
