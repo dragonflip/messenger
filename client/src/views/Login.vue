@@ -5,19 +5,20 @@
       style="height: 100vh"
     >
       <div class="text-center w-100" style="margin-bottom: 100px">
+        <!-- https://www.meihuiyimin.com/img/UtyaDuck-AgADSAIAAladvQo.gif -->
         <img
-          src="https://webz.telegram.org/telegram-logo.df3a91becaa9678c529b4c4cadd45204.svg"
+          src="https://img.stickers.cloud/packs/d65bbbc6-4f4c-4f61-b6ef-040654b74c12/webp/f72e416b-7564-4add-a7fc-e38b06ec6de8.webp"
           alt=""
           width="150"
         />
         <h2 style="margin-top: 30px">
-          <span v-if="formStep === 1">Увійдіть в Messenger</span>
+          <span v-if="formStep === 1">Увійдіть в Daki</span>
           <span v-if="formStep === 2">{{ form.email }}</span>
           <span v-if="formStep === 3" style="font-size: 95%">
             Вітаємо, як Вас звати?
           </span>
         </h2>
-        <p class="text-muted" style="margin-bottom: 20px">
+        <p class="light--text" style="margin-bottom: 20px">
           <span v-if="formStep === 1">Для продовження введіть свій E-mail</span>
           <span v-if="formStep === 2">
             <span v-if="checkSpam">
@@ -96,7 +97,7 @@
             elevation="0"
             x-large
             block
-            class="mt-2"
+            class="mt-2 black--text"
             color="primary"
             type="submit"
             :loading="okLogin"
@@ -202,10 +203,8 @@ export default {
             this.formStep++;
             this.okLogin = false;
           } else {
-            setTimeout(() => {
-              localStorage.token = data.token;
-              this.$router.push("/");
-            }, 1000);
+            localStorage.token = data.token;
+            this.$router.push("/");
           }
         } else {
           this.loginCodeError = "Не правильний код підтвердження";
@@ -243,10 +242,8 @@ export default {
         console.log(data);
 
         if (data.token !== null) {
-          setTimeout(() => {
-            localStorage.token = data.token;
-            this.$router.push("/");
-          }, 1000);
+          localStorage.token = data.token;
+          this.$router.push("/");
         }
 
         this.submitBlock = false;
@@ -257,6 +254,14 @@ export default {
     if (localStorage.token) {
       this.$router.push("/");
     }
+  },
+  created() {
+    this.$vuetify.theme.dark = true;
+    this.$vuetify.theme.themes.dark.background = "#353535";
+    this.$vuetify.theme.themes.dark.primary = "#fed81f";
+    // this.$vuetify.theme.themes.light.accent = "#c08fff";
+
+    // console.log(this.$vuetify.theme);
   },
 };
 </script>

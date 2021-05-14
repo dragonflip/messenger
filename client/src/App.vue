@@ -28,7 +28,8 @@ textarea:-webkit-autofill:hover textarea:-webkit-autofill:focus,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
-  box-shadow: 0 0 0px 30px #ffffff inset !important;
+  box-shadow: 0 0 0px 30px #121212 inset !important;
+  -webkit-text-fill-color: #fff !important;
 }
 
 ::-webkit-scrollbar {
@@ -43,12 +44,12 @@ select:-webkit-autofill:focus {
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #bbb;
+  background: #393939;
   border-radius: 20px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #999;
+  background: #333;
 }
 </style>

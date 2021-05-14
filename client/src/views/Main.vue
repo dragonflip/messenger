@@ -52,17 +52,19 @@
 
           <h5 class="text-center mt-2">
             {{ profile.firstname }} {{ profile.lastname }}
-            <h6 class="green--text mt-1">Online</h6>
+            <h6 class="primary--text mt-1">Online</h6>
           </h5>
 
           <v-btn
-            :color="!edit_profile ? 'primary' : 'white'"
+            :color="!edit_profile ? 'primary' : 'transparent'"
             elevation="0"
             rounded
             @click="edit_profile = !edit_profile"
             class="d-flex mx-auto"
           >
-            <span v-if="!edit_profile">Редагувати профіль</span>
+            <span v-if="!edit_profile" class="black--text"
+              >Редагувати профіль</span
+            >
             <span v-else>Скасувати редагування</span>
           </v-btn>
 
@@ -82,22 +84,20 @@
                     <div class="d-flex py-1" v-else>
                       <v-text-field
                         type="text"
-                        v-model.trim="profile.firstname"
+                        v-model="profile.firstname"
                         name="firstname"
                         label="Ім'я"
                         :autofocus="!$vuetify.breakpoint.mobile"
                         required
-                        minlength="2"
                         maxlength="20"
                         autocomplete="off"
                         hide-details="auto"
                       ></v-text-field>
                       <v-text-field
                         type="text"
-                        v-model.trim="profile.lastname"
+                        v-model="profile.lastname"
                         name="lastname"
                         label="Прізвище"
-                        minlength="2"
                         maxlength="20"
                         autocomplete="off"
                         hide-details="auto"
@@ -123,9 +123,10 @@
                     <div class="d-flex py-1" v-else>
                       <v-text-field
                         type="email"
-                        v-model.trim="profile.email"
+                        v-model="profile.email"
                         name="email"
                         label="E-mail"
+                        maxlength="40"
                         required
                         autocomplete="off"
                         hide-details="auto"
@@ -153,7 +154,7 @@
                     <div class="d-flex py-1" v-else>
                       <v-text-field
                         type="text"
-                        v-model.trim="profile.bio"
+                        v-model="profile.bio"
                         name="bio"
                         label="Про себе"
                         autocomplete="off"
@@ -175,7 +176,7 @@
                 elevation="0"
                 color="primary"
                 v-if="edit_profile"
-                class="d-flex ml-auto mr-5 mb-2"
+                class="d-flex ml-auto mr-5 mb-2 black--text"
               >
                 <v-icon>mdi-check</v-icon>
               </v-btn>
@@ -217,7 +218,7 @@
                   <img :src="user.profile_photo" />
                 </v-avatar>
 
-                <!-- <v-badge bordered bottom color="green" dot></v-badge> -->
+                <!-- <v-badge bordered bottom color="primary" dot></v-badge> -->
               </v-list-item-icon>
 
               <v-list-item-content>
@@ -252,12 +253,12 @@
         <div class="nav_bar d-flex">
           <v-menu offset-y min-width="280">
             <template v-slot:activator="{ on }">
-              <v-app-bar flat color="white">
+              <v-app-bar flat color="transparent">
                 <v-app-bar-nav-icon
                   @click="menu = !menu"
                   v-on="on"
                 ></v-app-bar-nav-icon>
-                <v-toolbar-title>Messenger</v-toolbar-title>
+                <v-toolbar-title>Daki</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <v-btn icon @click="search_dialog = true">
                   <v-icon>mdi-magnify</v-icon>
@@ -293,7 +294,12 @@
         <div class="chats_wrapper">
           <v-list
             class="chats p-0"
-            style="height: calc(100vh - 65px); overflow-y: auto"
+            style="overflow-y: auto"
+            :style="
+              $vuetify.breakpoint.mobile
+                ? 'height: calc(100vh - 57px)'
+                : 'height: calc(100vh - 65px)'
+            "
           >
             <v-list-item-group mandatory v-model="chat_id">
               <v-list-item class="d-none"></v-list-item>
@@ -317,7 +323,7 @@
                     v-if="chat.online"
                     bordered
                     bottom
-                    color="green"
+                    color="primary"
                     dot
                     offset-x="9"
                     offset-y="-9"
@@ -330,7 +336,7 @@
                     </div>
                     <div class="time">
                       <v-icon
-                        color="green"
+                        color="primary"
                         style="font-size: 22px"
                         v-if="chat.from_id === user_id"
                         >{{
@@ -348,7 +354,8 @@
                     <div class="unread_count" v-if="chat.unread_count > 0">
                       <v-badge
                         :content="chat.unread_count"
-                        color="green"
+                        color="primary black--text"
+                        style="color: #000 !important"
                         inline
                       ></v-badge>
                     </div>
@@ -368,7 +375,7 @@
         "
       >
         <div class="nav_bar d-flex" v-if="chat_id > 0">
-          <v-app-bar flat color="white">
+          <v-app-bar flat color="transparent">
             <v-btn
               elevation="0"
               icon
@@ -400,7 +407,7 @@
               {{ chats[chat_id - 1].firstname }}
               {{ chats[chat_id - 1].lastname }}
               <span
-                class="green--text"
+                class="primary--text"
                 :style="
                   $vuetify.breakpoint.mobile
                     ? 'font-size: 70%'
@@ -485,21 +492,26 @@
                 class="message_text"
                 :style="!$vuetify.breakpoint.mobile ? 'user-select: text' : ''"
               >
-                <span>{{ message.message }}</span>
+                <span v-if="message.message.slice(0, 4) == 'http'"
+                  ><a :href="message.message" target="_blank">{{
+                    message.message
+                  }}</a></span
+                >
+                <span v-else>{{ message.message }}</span>
               </div>
               <div class="message_time align-self-end ml-1">
                 {{ message.sent_date }}
               </div>
               <span v-if="message.from_id === user_id">
                 <v-icon
-                  color="white"
+                  color="black"
                   class="ml-1"
                   style="font-size: 22px"
                   v-if="message.has_read"
                   >mdi-check-all</v-icon
                 >
                 <v-icon
-                  color="white"
+                  color="black"
                   class="ml-1"
                   style="font-size: 22px"
                   v-else
@@ -528,7 +540,7 @@
                 type="submit"
                 x-large
                 elevation="0"
-                color="white"
+                color="transparent"
                 class="ml-1 align-self-end"
                 style="height: 55px; width: 60px; min-width: auto"
               >
@@ -571,7 +583,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.2.1",
+      version: "0.2.10",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
@@ -583,18 +595,21 @@ export default {
       localStorage.removeItem("token");
 
       this.loading = true;
-
-      setTimeout(() => {
-        this.loading = false;
-        this.$router.push("/login");
-      }, 1000);
+      this.$router.push("/login");
     },
     send_message: async function (e) {
-      if (!e || (e.keyCode === 13 && !e.shiftKey)) {
+      if (
+        !e ||
+        (e.keyCode === 13 && !e.shiftKey && !this.$vuetify.breakpoint.mobile)
+      ) {
         if (!this.messageTextBox.trim()) {
           this.messageTextBox = "";
           return;
         }
+
+        this.messageTextBox = this.messageTextBox.replace(/^\s*[2\r\n]/gm, "");
+
+        document.getElementById("messageTextBox").focus();
 
         await fetch(`/api/sendMessage/${localStorage.token}`, {
           method: "POST",
@@ -609,7 +624,6 @@ export default {
         });
 
         this.messageTextBox = "";
-        document.getElementById("messageTextBox").focus();
 
         // let last_chat_id = this.chat_id;
 
@@ -653,6 +667,23 @@ export default {
       this.users = this.users.filter((user) => user.id !== id);
     },
     editProfile: async function () {
+      if (!this.profile.firstname.trim()) {
+        this.profile.firstname = "";
+        return;
+      }
+      if (!this.profile.lastname.trim() && this.profile.lastname.length > 0) {
+        this.profile.lastname = "";
+        return;
+      }
+      if (!this.profile.email.trim()) {
+        this.profile.email = "";
+        return;
+      }
+      if (!this.profile.bio.trim() && this.profile.bio.length > 0) {
+        this.profile.bio = "";
+        return;
+      }
+
       await fetch(`/api/editProfile/${localStorage.token}`, {
         method: "PUT",
         headers: {
@@ -718,31 +749,6 @@ export default {
 
     console.log(`Mobile device: ${this.$vuetify.breakpoint.mobile}`);
 
-    // USER_ID
-    let res = await fetch(`/api/getUserID/${localStorage.token}`);
-    const data = await res.json();
-
-    // MY PROFILE
-    if (data.user_id !== null) {
-      this.user_id = data.user_id;
-
-      let res = await fetch(`/api/getProfile/${this.user_id}`);
-      this.profile = await res.json();
-    } else {
-      localStorage.removeItem("token");
-      this.$router.push("/login");
-    }
-
-    // CHATS
-    res = await fetch(`/api/getChats/${localStorage.token}`);
-    this.chats = await res.json();
-
-    if (!this.chats.length) {
-      this.search_dialog = true;
-    }
-
-    setTimeout(() => (this.loading = false), 2000);
-
     // Update online status
     setInterval(async () => {
       if (!document.hidden) {
@@ -805,16 +811,13 @@ export default {
       }
     }, 1000);
 
-    // Search Users
-    res = await fetch(`/api/getUsers`);
-    this.users = await res.json();
-
-    this.users = this.users.filter((user) => user.id !== this.user_id);
+    this.loading = false;
   },
   watch: {
     chat_id: async function (value) {
       if (value > 0) {
         this.view = "messages";
+        this.messages = {};
 
         // MESSAGES
         let res = await fetch(
@@ -842,22 +845,55 @@ export default {
       }
     },
   },
+  async created() {
+    this.$vuetify.theme.dark = true;
+    this.$vuetify.theme.themes.dark.primary = "#fed81f";
+    this.$vuetify.theme.themes.dark.accent = "#333";
+
+    // USER_ID
+    let res = await fetch(`/api/getUserID/${localStorage.token}`);
+    const data = await res.json();
+
+    // MY PROFILE
+    if (data.user_id !== null) {
+      this.user_id = data.user_id;
+
+      let res = await fetch(`/api/getProfile/${this.user_id}`);
+      this.profile = await res.json();
+    } else {
+      localStorage.removeItem("token");
+      this.$router.push("/login");
+    }
+
+    // CHATS
+    res = await fetch(`/api/getChats/${localStorage.token}`);
+    this.chats = await res.json();
+
+    if (!this.chats.length) {
+      this.search_dialog = true;
+    }
+
+    // Search Users
+    res = await fetch(`/api/getUsers`);
+    this.users = await res.json();
+    this.users = this.users.filter((user) => user.id !== this.user_id);
+  },
 };
 </script>
 
 <style scoped>
 .container-lg {
-  border-left: 1px solid #dfe1e5;
-  border-right: 1px solid #dfe1e5;
+  border-left: 1px solid #393939;
+  border-right: 1px solid #393939;
 }
 
 .nav_bar {
-  border-bottom: 1px solid #dfe1e5;
+  border-bottom: 1px solid #393939;
 }
 
 .chats {
   /* background: #ddd; */
-  border-right: 1px solid #dfe1e5 !important;
+  border-right: 1px solid #393939 !important;
 }
 
 .chat {
@@ -891,43 +927,51 @@ export default {
 }
 
 .messages .to {
-  background: #1976d2;
-  color: #fff;
+  background: #fed81f;
+  color: #000;
   padding: 5px 12px;
   border-radius: 15px;
   margin-top: 10px;
   align-self: flex-end;
 }
 
-.to:after {
-  content: "";
-  border: 15px solid transparent;
-  border-left-color: #1976d2;
-  border-right: 0;
-  /* border-bottom: 0; */
-  margin-right: -20px;
+.messages .to a {
+  color: #000;
 }
 
+/* .to:after { */
+/* content: ""; */
+/* border: 15px solid transparent; */
+/* border-left-color: #fed81f; */
+/* border-right: 0; */
+/* border-bottom: 0; */
+/* margin-right: -20px; */
+/* } */
+
 .messages .from {
-  background: #eee;
-  color: #000;
+  background: #333;
+  color: #fff;
   padding: 5px 12px;
   border-radius: 15px;
   margin-top: 10px;
   align-self: flex-start;
 }
 
-.message_text {
-  word-break: break-all;
-  white-space: pre-wrap;
-}
-
-.from:before {
+/* .from:before {
   content: "";
   border: 15px solid transparent;
-  border-right-color: #eee;
+  border-right-color: #333;
   border-left: 0;
   margin-left: -20px;
+} */
+
+.messages .from a {
+  color: #000;
+}
+
+.message_text {
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .message_time {
