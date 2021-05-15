@@ -2,9 +2,6 @@ const db = require("../config/db");
 const moment = require("moment");
 
 
-const crypto = require("crypto");
-require("dotenv").config();
-
 module.exports = (io, socket) => {
   socket.on("getMessages", async (data) => {
     let [chats] = await db.query(

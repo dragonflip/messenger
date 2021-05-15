@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // app.use("/api/getChats", require("./routes/getChats"));
 //app.use("/api/getMessages", require("./routes/getMessages"));
-app.use("/api/sendMessage", require("./routes/sendMessage"));
+//app.use("/api/sendMessage", require("./routes/sendMessage"));
 app.use("/api/deleteMessage", require("./routes/deleteMessage"));
 app.use("/api/editMessage", require("./routes/editMessage"));
 
@@ -33,6 +33,7 @@ io.on("connection", (socket) => {
   require("./sockets/signUp")(io, socket);
   require("./sockets/getChats")(io, socket);
   require("./sockets/getMessages")(io, socket);
+  require("./sockets/sendMessage")(io, socket);
 
   // console.log(`Socket connected ${socket.id}`);
 });
