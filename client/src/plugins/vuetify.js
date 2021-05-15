@@ -11,6 +11,6 @@ export default new Vuetify({
       md: 991,
       lg: 1200,
     },
-    mobileBreakpoint: 992,
+    mobileBreakpoint: 768,
   },
 });

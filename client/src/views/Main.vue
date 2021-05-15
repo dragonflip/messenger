@@ -275,7 +275,7 @@
       </v-window> -->
 
       <div
-        class="col-lg-4 p-0"
+        class="col-lg-4 col-md-5 p-0"
         v-if="
           ($vuetify.breakpoint.mobile && !chat_id) ||
           !$vuetify.breakpoint.mobile
@@ -403,7 +403,7 @@
       </div>
 
       <div
-        class="col-lg-8 p-0 d-flex flex-column"
+        class="col-lg-8 col-md-7 p-0 d-flex flex-column"
         v-if="
           ($vuetify.breakpoint.mobile && chat_id > 0) ||
           !$vuetify.breakpoint.mobile
@@ -622,7 +622,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.4.5",
+      version: "0.4.6",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
@@ -799,28 +799,29 @@ export default {
         img.onload = () => {
           // await img.decode();
 
+          let x, y, w, h;
+
           if (img.width > img.height) {
-            var x = (img.width - img.height) / 2;
-            var y = 0;
-            var w = img.height;
-            var h = img.height;
+            x = (img.width - img.height) / 2;
+            y = 0;
+            w = img.height;
+            h = img.height;
           } else if (img.height > img.width) {
-            var x = 0;
-            var y = (img.height - img.width) / 2;
-            var w = img.width;
-            var h = img.width;
+            x = 0;
+            y = (img.height - img.width) / 2;
+            w = img.width;
+            h = img.width;
           } else {
-            var x = 0;
-            var y = 0;
-            var w = img.width;
-            var h = img.height;
+            x = 0;
+            y = 0;
+            w = img.width;
+            h = img.height;
           }
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(img, x, y, w, h, 0, 0, 128, 128);
 
           const result = canvas.toDataURL("image/webp");
-
           this.profile.profile_photo = result;
 
           console.log(img.src.length, result.length);
