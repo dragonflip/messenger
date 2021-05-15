@@ -21,21 +21,25 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // app.use("/api/deleteMessage", require("./routes/deleteMessage"));
 // app.use("/api/editMessage", require("./routes/editMessage"));
 
-app.use("/api/getUserID", require("./routes/getUserID"));
+// app.use("/api/getUserID", require("./routes/getUserID"));
 app.use("/api/getUsers", require("./routes/getUsers"));
 app.use("/api/getProfile", require("./routes/getProfile"));
 app.use("/api/editProfile", require("./routes/editProfile"));
 
 //Sockets
 io.on("connection", (socket) => {
+
   require("./sockets/sendCode")(io, socket);
   require("./sockets/signIn")(io, socket);
   require("./sockets/signUp")(io, socket);
+
   require("./sockets/getChats")(io, socket);
   require("./sockets/getMessages")(io, socket);
   require("./sockets/sendMessage")(io, socket);
   require("./sockets/deleteMessage")(io, socket);
   require("./sockets/editMessage")(io, socket);
+
+  require("./sockets/getUserID")(io, socket);
 
   // console.log(`Socket connected ${socket.id}`);
 });
