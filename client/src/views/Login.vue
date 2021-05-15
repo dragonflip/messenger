@@ -5,9 +5,8 @@
       style="height: 100vh"
     >
       <div class="text-center w-100" style="margin-bottom: 100px">
-        <!-- https://www.meihuiyimin.com/img/UtyaDuck-AgADSAIAAladvQo.gif -->
         <img
-          src="https://img.stickers.cloud/packs/d65bbbc6-4f4c-4f61-b6ef-040654b74c12/webp/f72e416b-7564-4add-a7fc-e38b06ec6de8.webp"
+          src="https://www.meihuiyimin.com/img/UtyaDuck-AgADSAIAAladvQo.gif"
           alt=""
           width="150"
         />
@@ -116,14 +115,14 @@
 import { io } from "socket.io-client";
 const socket = io();
 
-socket.on("connect", () => {
-  console.log("connected");
+// socket.on("connect", () => {
+//   console.log("connected");
 
-  socket.on("hello_user", () => {
-    console.log("hello_user");
-    socket.emit("hello", { user: "Petro" });
-  });
-});
+//   socket.on("hello_user", () => {
+//     console.log("hello_user");
+//     socket.emit("hello", { user: "Petro" });
+//   });
+// });
 
 export default {
   name: "Login",
@@ -154,19 +153,13 @@ export default {
 
         this.submitBlock = true;
 
-        const res = await fetch("/api/sendCode", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: this.form.email }),
+        socket.emit("sendCode", { email: this.form.email }); // need register (true | false)
+        socket.on("sendCode", (data) => {
+          this.needRegister = data.need_register;
+          this.formStep++;
+
+          this.submitBlock = false;
         });
-        const data = await res.json(); // need register (true | false)
-
-        this.needRegister = data.need_register;
-        this.formStep++;
-
-        this.submitBlock = false;
 
         setTimeout(() => {
           this.checkSpam = true;

@@ -40,14 +40,21 @@
             </v-btn>
           </v-card-title>
 
+          <v-avatar color="accent" size="55" v-if="!profile.profile_photo">
+            <span class="white--text">
+              {{ profile.firstname[0] }} {{ profile.lastname[0] }}
+            </span>
+          </v-avatar>
           <img
-            :src="
-              profile.profile_photo
-                ? profile.profile_photo
-                : 'https://telegram.org/file/464001801/4/pPObBDJVv-M.32191.png/9963667389a3218249'
+            v-else
+            :src="profile.profile_photo"
+            style="
+              width: 128px;
+              height: 128px;
+              border-radius: 50%;
+              object-fit: cover;
+              filter: brightness(0.7);
             "
-            style="width: 128px; height: 128px; border-radius: 50%"
-            :style="edit_profile ? 'filter: brightness(0.7)' : ''"
             class="d-flex mx-auto"
           />
 
@@ -236,7 +243,7 @@
                   </span>
                 </v-avatar>
                 <v-avatar size="50" v-else>
-                  <img :src="user.profile_photo" />
+                  <img :src="user.profile_photo" style="object-fit: cover" />
                 </v-avatar>
 
                 <!-- <v-badge bordered bottom color="primary" dot></v-badge> -->
@@ -337,7 +344,7 @@
                     </span>
                   </v-avatar>
                   <v-avatar size="55" v-else>
-                    <img :src="chat.profile_photo" />
+                    <img :src="chat.profile_photo" style="object-fit: cover" />
                   </v-avatar>
 
                   <v-badge
@@ -418,7 +425,10 @@
               </span>
             </v-avatar>
             <v-avatar :size="$vuetify.breakpoint.mobile ? '45' : '50'" v-else>
-              <img :src="chats[chat_id - 1].profile_photo" />
+              <img
+                :src="chats[chat_id - 1].profile_photo"
+                style="object-fit: cover"
+              />
             </v-avatar>
 
             <h5
@@ -604,7 +614,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.3.1",
+      version: "0.3.2",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
@@ -628,7 +638,7 @@ export default {
           return;
         }
 
-        this.messageTextBox = this.messageTextBox.replace(/^\s*[2\r\n]/gm, "");
+        this.messageTextBox = this.messageTextBox.replace(/^\s*[\r\n]/gm, "");
 
         document.getElementById("messageTextBox").focus();
 

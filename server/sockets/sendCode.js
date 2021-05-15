@@ -16,31 +16,30 @@ let transporter = nodemailer.createTransport({
 });
 
 module.exports = (io, socket) => {
-  const sendcode = (email) => {
-    let[result] = db.query("SELECT * FROM users WHERE email = ('" + email + "')");
+  socket.on("sendCode", async (data) => {
+    let [result] = await db.query(
+      `SELECT * FROM users WHERE email = "${data.email}"`
+    );
     let Code = randomNumber(10000, 99999);
 
-    transporter.sendMail({
-        to: email,
-        subject: "Підтвердження входу в обліковий запис",
-        text: `Доброго дня. Ваш код підтвердження входу в обліковий запис: ${Code}`,
-    });
+    // transporter.sendMail({
+    //   to: data.email,
+    //   subject: "Підтвердження входу в обліковий запис",
+    //   text: `Доброго дня. Ваш код підтвердження входу в обліковий запис: ${Code}`,
+    // });
 
     let user = {
-        email: email,
-        login_code: Code,
+      email: data.email,
+      login_code: Code,
     };
 
-    db.query("DELETE FROM login_codes WHERE email = ('" + email + "')");
-    db.query("INSERT INTO login_codes set ?", user);
+    await db.query(`DELETE FROM login_codes WHERE email = ("${data.email}")`);
+    await db.query(`INSERT INTO login_codes set ?`, user);
 
-    if(result.length > 0){
-        io.emit("result", { need_register: false })
+    if (result.length > 0) {
+      socket.emit("sendCode", { need_register: false });
+    } else {
+      socket.emit("sendCode", { need_register: true });
     }
-    else {
-        io.emit("result", { need_register: true })
-    }
-  }
-
-  socket.on("sendCode", sendcode);
-}
+  });
+};

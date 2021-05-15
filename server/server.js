@@ -1,9 +1,8 @@
 const express = require("express");
 const app = express();
-const socketIO = require("socket.io");
 const http = require("http");
 const server = http.createServer(app);
-const io = socketIO(server);
+const io = require("socket.io")(server);
 
 // Middleware
 app.use(express.static(__dirname + "/public"));
@@ -28,27 +27,11 @@ app.use("/api/getProfile", require("./routes/getProfile"));
 app.use("/api/editProfile", require("./routes/editProfile"));
 
 //Sockets
+io.on("connection", (socket) => {
+  require("./sockets/sendCode")(io, socket);
 
-const sendCode = require("./sockets/sendCode");
-
-const onConnection = (socket) => {
-  sendCode(io, socket);
-}
-
-io.on("connection", onConnection);
-  //console.log("Socket connected");
-
-  /*socket.on("sendCode", function(data){
-    sendCode(socket, data);
-  })*/
-
-  //socket.emit("hello_user");
-
-  /*socket.on("hello", (data) => {
-    console.log(`${data.user} said hello!`);
-  });*/
-
-
+  // console.log(`Socket connected ${socket.id}`);
+});
 
 // SPA
 app.get("*", (req, res) => {
