@@ -44,7 +44,7 @@ select:-webkit-autofill:focus {
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #393939;
+  background: #444;
   border-radius: 20px;
 }
 

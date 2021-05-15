@@ -25,6 +25,8 @@ app.use("/api/getUsers", require("./routes/getUsers"));
 app.use("/api/getProfile", require("./routes/getProfile"));
 app.use("/api/editProfile", require("./routes/editProfile"));
 
+let users = 0;
+
 // Sockets
 io.on("connection", (socket) => {
   require("./sockets/sendCode")(io, socket);
@@ -42,10 +44,12 @@ io.on("connection", (socket) => {
   require("./sockets/getProfile")(io, socket);
   require("./sockets/editProfile")(io, socket);
 
-  console.log(`Socket connected ${socket.id}`);
+  users++;
+  io.emit("usersOnline", users);
 
   socket.on("disconnect", () => {
-    console.log(`Socket disconnected ${socket.id}`);
+    users--;
+    io.emit("usersOnline", users);
   });
 });
 

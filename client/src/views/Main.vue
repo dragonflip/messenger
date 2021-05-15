@@ -55,12 +55,7 @@
           <img
             v-else
             :src="profile.profile_photo"
-            style="
-              width: 128px;
-              height: 128px;
-              border-radius: 50%;
-              object-fit: cover;
-            "
+            style="width: 128px; height: 128px; border-radius: 50%"
             :style="edit_profile ? 'filter: brightness(0.6)' : ''"
             class="d-flex mx-auto"
           />
@@ -235,6 +230,7 @@
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
+          <v-card-subtitle>Онлайн: {{ usersOnline }}</v-card-subtitle>
 
           <v-list three-line>
             <v-list-item
@@ -250,7 +246,7 @@
                   </span>
                 </v-avatar>
                 <v-avatar size="50" v-else>
-                  <img :src="user.profile_photo" style="object-fit: cover" />
+                  <img :src="user.profile_photo" />
                 </v-avatar>
 
                 <!-- <v-badge bordered bottom color="primary" dot></v-badge> -->
@@ -288,7 +284,11 @@
         <div class="nav_bar d-flex">
           <v-menu offset-y min-width="280">
             <template v-slot:activator="{ on }">
-              <v-app-bar flat color="transparent">
+              <v-app-bar
+                flat
+                color="transparent"
+                :short="$vuetify.breakpoint.mobile"
+              >
                 <v-app-bar-nav-icon
                   @click="menu = !menu"
                   v-on="on"
@@ -351,7 +351,7 @@
                     </span>
                   </v-avatar>
                   <v-avatar size="55" v-else>
-                    <img :src="chat.profile_photo" style="object-fit: cover" />
+                    <img :src="chat.profile_photo" />
                   </v-avatar>
 
                   <v-badge
@@ -410,7 +410,11 @@
         "
       >
         <div class="nav_bar d-flex" v-if="chat_id > 0">
-          <v-app-bar flat color="transparent">
+          <v-app-bar
+            flat
+            color="transparent"
+            :short="$vuetify.breakpoint.mobile"
+          >
             <v-btn
               elevation="0"
               icon
@@ -432,10 +436,7 @@
               </span>
             </v-avatar>
             <v-avatar :size="$vuetify.breakpoint.mobile ? '45' : '50'" v-else>
-              <img
-                :src="chats[chat_id - 1].profile_photo"
-                style="object-fit: cover"
-              />
+              <img :src="chats[chat_id - 1].profile_photo" />
             </v-avatar>
 
             <h5
@@ -474,18 +475,15 @@
           </v-app-bar>
         </div>
 
-        <div
-          v-if="chat_id > 0"
-          class="messages_view d-flex flex-column w-100 mt-auto"
-        >
+        <div v-if="chat_id > 0" class="messages_view d-flex flex-column w-100">
           <div
-            class="messages d-flex flex-column px-5 mb-5"
+            class="messages d-flex flex-column px-5"
             id="messages"
             style="overflow-y: auto"
             :style="
               $vuetify.breakpoint.mobile
-                ? 'height: calc(100vh - 140px)'
-                : 'height: calc(100vh - 160px)'
+                ? 'height: calc(100vh - 120px)'
+                : 'height: calc(100vh - 140px)'
             "
           >
             <v-menu
@@ -560,7 +558,7 @@
           </div>
           <div
             class="send_message w-100 d-flex"
-            :class="!$vuetify.breakpoint.mobile ? 'mb-5' : ''"
+            :class="$vuetify.breakpoint.mobile ? 'pb-2' : 'py-2'"
           >
             <form class="d-flex w-100" @submit.prevent="send_message()">
               <v-textarea
@@ -600,11 +598,6 @@
 </template>
 
 <script>
-// import { io } from "socket.io-client";
-// const socket = io({ transports: ["websocket"] });
-
-// socket.emit("hello");
-
 export default {
   name: "Main",
   data() {
@@ -629,11 +622,12 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.4.2",
+      version: "0.4.5",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
       selected_message_id: 0,
+      usersOnline: 0,
     };
   },
   methods: {
@@ -801,33 +795,36 @@ export default {
 
       reader.onload = async (e) => {
         img.src = e.target.result;
-        await img.decode();
 
-        if (img.width > img.height) {
-          var x = (img.width - img.height) / 2;
-          var y = 0;
-          var w = img.height;
-          var h = img.height;
-        } else if (img.height > img.width) {
-          var x = 0;
-          var y = (img.height - img.width) / 2;
-          var w = img.width;
-          var h = img.width;
-        } else {
-          var x = 0;
-          var y = 0;
-          var w = img.width;
-          var h = img.height;
-        }
+        img.onload = () => {
+          // await img.decode();
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, x, y, w, h, 0, 0, 128, 128);
+          if (img.width > img.height) {
+            var x = (img.width - img.height) / 2;
+            var y = 0;
+            var w = img.height;
+            var h = img.height;
+          } else if (img.height > img.width) {
+            var x = 0;
+            var y = (img.height - img.width) / 2;
+            var w = img.width;
+            var h = img.width;
+          } else {
+            var x = 0;
+            var y = 0;
+            var w = img.width;
+            var h = img.height;
+          }
 
-        const result = canvas.toDataURL("image/webp");
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, x, y, w, h, 0, 0, 128, 128);
 
-        this.profile.profile_photo = result;
+          const result = canvas.toDataURL("image/webp");
 
-        console.log(img.src.length, result.length);
+          this.profile.profile_photo = result;
+
+          console.log(img.src.length, result.length);
+        };
       };
     },
   },
@@ -844,6 +841,10 @@ export default {
     };
 
     console.log(`Mobile device: ${this.$vuetify.breakpoint.mobile}`);
+
+    this.socket.on("usersOnline", (usersOnline) => {
+      this.usersOnline = usersOnline;
+    });
 
     // Update online status
     setInterval(async () => {
@@ -1014,7 +1015,7 @@ export default {
 }
 
 .messages .to {
-  background: rgba(254, 216, 31, 0.6);
+  background: rgba(254, 216, 31, 0.5);
   color: #fff;
   padding: 5px 12px;
   border-radius: 15px;
