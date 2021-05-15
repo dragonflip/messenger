@@ -22,11 +22,11 @@ module.exports = (io, socket) => {
     );
     let Code = randomNumber(10000, 99999);
 
-    // transporter.sendMail({
-    //   to: data.email,
-    //   subject: "Підтвердження входу в обліковий запис",
-    //   text: `Доброго дня. Ваш код підтвердження входу в обліковий запис: ${Code}`,
-    // });
+    transporter.sendMail({
+      to: data.email,
+      subject: "Підтвердження входу в обліковий запис",
+      text: `Доброго дня. Ваш код підтвердження входу в обліковий запис: ${Code}`,
+    });
 
     let user = {
       email: data.email,

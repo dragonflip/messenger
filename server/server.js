@@ -11,8 +11,8 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Routes
 
-//app.use("/api/sendCode", require("./routes/sendCode"));
-app.use("/api/signIn", require("./routes/signIn"));
+// app.use("/api/sendCode", require("./routes/sendCode"));
+// app.use("/api/signIn", require("./routes/signIn"));
 app.use("/api/signUp", require("./routes/signUp"));
 
 app.use("/api/getChats", require("./routes/getChats"));
@@ -29,6 +29,7 @@ app.use("/api/editProfile", require("./routes/editProfile"));
 //Sockets
 io.on("connection", (socket) => {
   require("./sockets/sendCode")(io, socket);
+  require("./sockets/signIn")(io, socket);
 
   // console.log(`Socket connected ${socket.id}`);
 });

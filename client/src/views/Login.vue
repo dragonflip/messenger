@@ -153,7 +153,8 @@ export default {
 
         this.submitBlock = true;
 
-        socket.emit("sendCode", { email: this.form.email }); // need register (true | false)
+        socket.emit("sendCode", { email: this.form.email });
+        // need register (true | false)
         socket.on("sendCode", (data) => {
           this.needRegister = data.need_register;
           this.formStep++;
@@ -175,36 +176,29 @@ export default {
         this.submitBlock = true;
         this.okLogin = true;
 
-        const res = await fetch("/api/signIn", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: this.form.email,
-            login_code: this.form.login_code,
-          }),
+        socket.emit("signIn", {
+          email: this.form.email,
+          login_code: this.form.login_code,
         });
-        const data = await res.json(); // token ("..." | null)
+        // token ("..." | null)
+        socket.on("signIn", (data) => {
+          if (data.token !== null) {
+            this.loginCodeError = "";
 
-        console.log(data);
-
-        if (data.token !== null) {
-          this.loginCodeError = "";
-
-          if (this.needRegister) {
-            this.formStep++;
-            this.okLogin = false;
+            if (this.needRegister) {
+              this.formStep++;
+              this.okLogin = false;
+            } else {
+              localStorage.token = data.token;
+              this.$router.push("/");
+            }
           } else {
-            localStorage.token = data.token;
-            this.$router.push("/");
+            this.loginCodeError = "Не правильний код підтвердження";
+            this.okLogin = false;
           }
-        } else {
-          this.loginCodeError = "Не правильний код підтвердження";
-          this.okLogin = false;
-        }
 
-        this.submitBlock = false;
+          this.submitBlock = false;
+        });
       } // Registration
       else if (this.formStep === 3) {
         if (!this.form.firstname.trim()) {
