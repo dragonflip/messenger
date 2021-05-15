@@ -10,6 +10,7 @@ module.exports = (io, socket) => {
       firstname: data.firstname,
       lastname: data.lastname,
       token: crypto.randomBytes(32).toString("hex"),
+      bio: "",
     };
 
     await db.query(`INSERT INTO users set ?`, user);

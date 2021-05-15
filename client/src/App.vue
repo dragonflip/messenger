@@ -33,8 +33,8 @@ select:-webkit-autofill:focus {
 }
 
 ::-webkit-scrollbar {
-  width: 2px;
-  height: 2px;
+  width: 4px;
+  height: 4px;
 }
 
 /* Track */
@@ -50,6 +50,7 @@ select:-webkit-autofill:focus {
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #333;
+  background: #555;
+  opacity: 0;
 }
 </style>

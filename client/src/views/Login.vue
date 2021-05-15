@@ -112,18 +112,6 @@
 </template>
 
 <script>
-import { io } from "socket.io-client";
-const socket = io();
-
-// socket.on("connect", () => {
-//   console.log("connected");
-
-//   socket.on("hello_user", () => {
-//     console.log("hello_user");
-//     socket.emit("hello", { user: "Petro" });
-//   });
-// });
-
 export default {
   name: "Login",
   data() {
@@ -154,9 +142,9 @@ export default {
         this.loadingBtn = true;
         this.submitBlock = true;
 
-        socket.emit("sendCode", { email: this.form.email });
+        this.socket.emit("sendCode", { email: this.form.email });
         // need register (true | false)
-        socket.on("sendCode", (data) => {
+        this.socket.on("sendCode", (data) => {
           this.needRegister = data.need_register;
           this.formStep++;
 
@@ -178,12 +166,12 @@ export default {
         this.submitBlock = true;
         this.loadingBtn = true;
 
-        socket.emit("signIn", {
+        this.socket.emit("signIn", {
           email: this.form.email,
           login_code: this.form.login_code,
         });
         // token ("..." | null)
-        socket.on("signIn", (data) => {
+        this.socket.on("signIn", (data) => {
           if (data.token !== null) {
             this.loginCodeError = "";
 
@@ -215,14 +203,14 @@ export default {
         this.submitBlock = true;
         this.loadingBtn = true;
 
-        socket.emit("signUp", {
+        this.socket.emit("signUp", {
           email: this.form.email,
           login_code: this.form.login_code,
           firstname: this.form.firstname,
           lastname: this.form.lastname,
         });
         // token ("..." | null)
-        socket.on("signUp", (data) => {
+        this.socket.on("signUp", (data) => {
           if (data.token !== null) {
             localStorage.token = data.token;
             this.$router.push("/");
@@ -235,15 +223,13 @@ export default {
   },
   created() {
     if (localStorage.token) {
-      this.$router.push("/");
-
+      location = "/";
       return;
     }
 
     this.$vuetify.theme.dark = true;
-    this.$vuetify.theme.themes.dark.background = "#353535";
     this.$vuetify.theme.themes.dark.primary = "#fed81f";
-    // this.$vuetify.theme.themes.light.accent = "#c08fff";
+    this.$vuetify.theme.themes.light.accent = "#c08fff";
   },
 };
 </script>

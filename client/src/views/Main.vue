@@ -1,5 +1,13 @@
 <template>
-  <div class="container-lg" style="user-select: none">
+  <div
+    class="container-lg"
+    style="user-select: none"
+    :style="
+      !this.$vuetify.breakpoint.mobile
+        ? 'border-left: 1px solid #393939; border-right: 1px solid #393939;'
+        : ''
+    "
+  >
     <div class="row" style="margin: 0 -15px">
       <v-progress-linear
         indeterminate
@@ -12,19 +20,12 @@
         v-model="profile_dialog"
         max-width="450"
         :fullscreen="$vuetify.breakpoint.mobile"
+        @click:outside="edit_profile = false"
+        @keydown="edit_profile = false"
       >
         <v-card>
           <v-card-title class="headline">
             Мій профіль
-
-            <!-- <v-tooltip bottom>
-              <template v-slot:activator="{ on }">
-                <v-btn elevation="0" v-on="on" icon>
-                  <v-icon>mdi-pencil</v-icon>
-                </v-btn>
-              </template>
-              <span>Редагувати профіль</span>
-            </v-tooltip> -->
 
             <v-spacer></v-spacer>
 
@@ -40,8 +41,14 @@
             </v-btn>
           </v-card-title>
 
-          <v-avatar color="accent" size="55" v-if="!profile.profile_photo">
-            <span class="white--text">
+          <v-avatar
+            color="accent"
+            size="128"
+            class="d-flex mx-auto"
+            style="font-size: 200%"
+            v-if="!profile.profile_photo"
+          >
+            <span class="white--text" v-if="!edit_profile">
               {{ profile.firstname[0] }} {{ profile.lastname[0] }}
             </span>
           </v-avatar>
@@ -53,8 +60,8 @@
               height: 128px;
               border-radius: 50%;
               object-fit: cover;
-              filter: brightness(0.7);
             "
+            :style="edit_profile ? 'filter: brightness(0.6)' : ''"
             class="d-flex mx-auto"
           />
 
@@ -71,7 +78,7 @@
 
           <input
             type="file"
-            accept="image/jpeg, image/png, image/gif"
+            accept="image/*"
             ref="profile_photo_upload"
             label="Select File..."
             v-show="false"
@@ -326,7 +333,7 @@
             :style="
               $vuetify.breakpoint.mobile
                 ? 'height: calc(100vh - 57px)'
-                : 'height: calc(100vh - 65px)'
+                : 'height: calc(100vh - 65px); border-right: 1px solid #393939 !important;'
             "
           >
             <v-list-item-group mandatory v-model="chat_id">
@@ -495,7 +502,7 @@
                     Копіювати
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item>
+                <v-list-item @click="editMessage">
                   <v-list-item-title>
                     <v-icon class="pr-2">mdi-pencil-outline</v-icon>
                     Редагувати
@@ -515,9 +522,9 @@
               v-for="(message, i) in messages"
               :key="i"
               :class="message.from_id === user_id ? 'to' : 'from'"
-              style="max-width: 80%"
+              style="max-width: 90%"
               @contextmenu="messageContext($event, message.from_id, message.id)"
-              :id="message.id"
+              :id="'message_' + message.id"
             >
               <div
                 class="message_text"
@@ -535,14 +542,14 @@
               </div>
               <span v-if="message.from_id === user_id">
                 <v-icon
-                  color="black"
+                  color="rgba(255, 255, 255, 0.7)"
                   class="ml-1"
                   style="font-size: 22px"
                   v-if="message.has_read"
                   >mdi-check-all</v-icon
                 >
                 <v-icon
-                  color="black"
+                  color="rgba(255, 255, 255, 0.7)"
                   class="ml-1"
                   style="font-size: 22px"
                   v-else
@@ -593,6 +600,11 @@
 </template>
 
 <script>
+// import { io } from "socket.io-client";
+// const socket = io({ transports: ["websocket"] });
+
+// socket.emit("hello");
+
 export default {
   name: "Main",
   data() {
@@ -608,13 +620,16 @@ export default {
       clicked: false,
       profile_dialog: false,
       search_dialog: false,
-      profile: {},
+      profile: {
+        firstname: "",
+        lastname: "",
+      },
       user_id: null,
       edit_profile: false,
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.3.6",
+      version: "0.4.2",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
@@ -626,8 +641,7 @@ export default {
       localStorage.removeItem("token");
 
       this.loading = true;
-      this.$router.push("/login");
-
+      location = "/login";
       return;
     },
     send_message: async function (e) {
@@ -641,7 +655,6 @@ export default {
         }
 
         this.messageTextBox = this.messageTextBox.replace(/^\s*[\r\n]/gm, "");
-
         document.getElementById("messageTextBox").focus();
 
         await fetch(`/api/sendMessage/${localStorage.token}`, {
@@ -700,11 +713,12 @@ export default {
       this.users = this.users.filter((user) => user.id !== id);
     },
     editProfile: async function () {
+      console.log(this.profile);
       if (!this.profile.firstname.trim()) {
         this.profile.firstname = "";
         return;
       }
-      if (!this.profile.lastname.trim() && this.profile.lastname.length > 0) {
+      if (!this.profile.lastname.trim() && this.profile.lastname.length) {
         this.profile.lastname = "";
         return;
       }
@@ -712,7 +726,7 @@ export default {
         this.profile.email = "";
         return;
       }
-      if (!this.profile.bio.trim() && this.profile.bio.length > 0) {
+      if (!this.profile.bio.trim() && this.profile.bio.length) {
         this.profile.bio = "";
         return;
       }
@@ -748,12 +762,22 @@ export default {
       }
     },
     copyMessage: function () {
+      document.querySelector(
+        `#message_${this.selected_message_id} .message_text`
+      ).style.userSelect = "text";
+
       const range = document.createRange();
-      range.selectNode(document.getElementById(this.selected_message_id));
+      range.selectNode(
+        document.getElementById(`message_${this.selected_message_id}`)
+      );
       window.getSelection().removeAllRanges();
       window.getSelection().addRange(range);
       document.execCommand("copy");
       window.getSelection().removeAllRanges();
+
+      document.querySelector(
+        `#message_${this.selected_message_id} .message_text`
+      ).style.userSelect = "none";
     },
     deleteMessage: async function () {
       await fetch(
@@ -764,16 +788,47 @@ export default {
       );
     },
     profilePhotoUpload: function (e) {
+      const img = new Image();
       const reader = new FileReader();
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = 128;
+      canvas.height = 128;
+
       reader.readAsDataURL(e.target.files[0]);
 
-      reader.addEventListener(
-        "load",
-        () => {
-          this.profile.profile_photo = reader.result;
-        },
-        false
-      );
+      reader.onload = async (e) => {
+        img.src = e.target.result;
+        await img.decode();
+
+        if (img.width > img.height) {
+          var x = (img.width - img.height) / 2;
+          var y = 0;
+          var w = img.height;
+          var h = img.height;
+        } else if (img.height > img.width) {
+          var x = 0;
+          var y = (img.height - img.width) / 2;
+          var w = img.width;
+          var h = img.width;
+        } else {
+          var x = 0;
+          var y = 0;
+          var w = img.width;
+          var h = img.height;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, x, y, w, h, 0, 0, 128, 128);
+
+        const result = canvas.toDataURL("image/webp");
+
+        this.profile.profile_photo = result;
+
+        console.log(img.src.length, result.length);
+      };
     },
   },
   async mounted() {
@@ -798,10 +853,7 @@ export default {
         this.user_id = data.user_id;
 
         if (this.user_id === null) {
-          localStorage.removeItem("token");
-          this.$router.push("/login");
-
-          return;
+          this.logout();
         }
       }
     }, 55000);
@@ -869,8 +921,6 @@ export default {
           }`
         );
         this.messages = await res.json();
-        // console.log(this.messages);
-
         this.chats[value - 1].unread_count = 0;
 
         if (!this.$vuetify.breakpoint.mobile) {
@@ -890,9 +940,7 @@ export default {
   },
   async created() {
     if (!localStorage.token) {
-      this.$router.push("/login");
-
-      return;
+      this.logout();
     }
 
     this.$vuetify.theme.dark = true;
@@ -910,10 +958,7 @@ export default {
       let res = await fetch(`/api/getProfile/${this.user_id}`);
       this.profile = await res.json();
     } else {
-      localStorage.removeItem("token");
-      this.$router.push("/login");
-
-      return;
+      this.logout();
     }
 
     // CHATS
@@ -933,18 +978,8 @@ export default {
 </script>
 
 <style scoped>
-.container-lg {
-  border-left: 1px solid #393939;
-  border-right: 1px solid #393939;
-}
-
 .nav_bar {
   border-bottom: 1px solid #393939;
-}
-
-.chats {
-  /* background: #ddd; */
-  border-right: 1px solid #393939 !important;
 }
 
 .chat {
@@ -975,11 +1010,12 @@ export default {
 
 .chat .time {
   font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .messages .to {
-  background: #fed81f;
-  color: #000;
+  background: rgba(254, 216, 31, 0.6);
+  color: #fff;
   padding: 5px 12px;
   border-radius: 15px;
   margin-top: 10px;
@@ -987,7 +1023,7 @@ export default {
 }
 
 .messages .to a {
-  color: #000;
+  color: #fff;
 }
 
 /* .to:after { */
@@ -1027,6 +1063,7 @@ export default {
 
 .message_time {
   font-size: 80%;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .message-subtitle .message {
