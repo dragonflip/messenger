@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // app.use("/api/getUserID", require("./routes/getUserID"));
 // app.use("/api/getUsers", require("./routes/getUsers"));
 // app.use("/api/getProfile", require("./routes/getProfile"));
-app.use("/api/editProfile", require("./routes/editProfile"));
+// app.use("/api/editProfile", require("./routes/editProfile"));
 
 //Sockets
 io.on("connection", (socket) => {
@@ -42,6 +42,7 @@ io.on("connection", (socket) => {
   require("./sockets/getUserID")(io, socket);
   require("./sockets/getUsers")(io, socket);
   require("./sockets/getProfile")(io, socket);
+  require("./sockets/editProfile")(io, socket);
 
 
   // console.log(`Socket connected ${socket.id}`);
