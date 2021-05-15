@@ -1,4 +1,5 @@
 const db = require("../config/db");
+
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 

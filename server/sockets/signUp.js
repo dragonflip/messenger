@@ -4,15 +4,16 @@ const crypto = require("crypto");
 require("dotenv").config();
 
 module.exports = (io, socket) => {
-  socket.on("sendCode", async (data) => {
+  socket.on("signUp", async (data) => {
     let user = {
-    email: data.email,
-    firstname: data.firstname,
-    lastname: data.lastname,
-    token: crypto.randomBytes(32).toString("hex"),
+      email: data.email,
+      firstname: data.firstname,
+      lastname: data.lastname,
+      token: crypto.randomBytes(32).toString("hex"),
     };
+
     await db.query(`INSERT INTO users set ?`, user);
 
-    socket.emit("userToken", { token: user.token });
+    socket.emit("signUp", { token: user.token });
   });
 };

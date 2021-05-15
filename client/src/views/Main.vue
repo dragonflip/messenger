@@ -614,7 +614,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.3.2",
+      version: "0.3.6",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
@@ -627,6 +627,8 @@ export default {
 
       this.loading = true;
       this.$router.push("/login");
+
+      return;
     },
     send_message: async function (e) {
       if (
@@ -775,11 +777,6 @@ export default {
     },
   },
   async mounted() {
-    if (!localStorage.token) {
-      this.$router.push("/login");
-      return;
-    }
-
     window.onresize = () => {
       if (this.chat_id > 0) {
         let scroll = document.getElementById("messages");
@@ -803,6 +800,8 @@ export default {
         if (this.user_id === null) {
           localStorage.removeItem("token");
           this.$router.push("/login");
+
+          return;
         }
       }
     }, 55000);
@@ -890,6 +889,12 @@ export default {
     },
   },
   async created() {
+    if (!localStorage.token) {
+      this.$router.push("/login");
+
+      return;
+    }
+
     this.$vuetify.theme.dark = true;
     this.$vuetify.theme.themes.dark.primary = "#fed81f";
     this.$vuetify.theme.themes.dark.accent = "#333";
@@ -907,6 +912,8 @@ export default {
     } else {
       localStorage.removeItem("token");
       this.$router.push("/login");
+
+      return;
     }
 
     // CHATS

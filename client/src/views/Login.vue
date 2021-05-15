@@ -99,7 +99,7 @@
             class="mt-2 black--text"
             color="primary"
             type="submit"
-            :loading="okLogin"
+            :loading="loadingBtn"
           >
             <span v-if="formStep === 3">Почати спілкування</span>
             <span v-else-if="formStep === 1 || needRegister">Продовжити</span>
@@ -138,7 +138,7 @@ export default {
       submitBlock: false,
       needRegister: false,
       loginCodeError: "",
-      okLogin: false,
+      loadingBtn: false,
       checkSpam: false,
     };
   },
@@ -151,6 +151,7 @@ export default {
           return;
         }
 
+        this.loadingBtn = true;
         this.submitBlock = true;
 
         socket.emit("sendCode", { email: this.form.email });
@@ -160,6 +161,7 @@ export default {
           this.formStep++;
 
           this.submitBlock = false;
+          this.loadingBtn = false;
         });
 
         setTimeout(() => {
@@ -174,7 +176,7 @@ export default {
         }
 
         this.submitBlock = true;
-        this.okLogin = true;
+        this.loadingBtn = true;
 
         socket.emit("signIn", {
           email: this.form.email,
@@ -187,14 +189,14 @@ export default {
 
             if (this.needRegister) {
               this.formStep++;
-              this.okLogin = false;
+              this.loadingBtn = false;
             } else {
               localStorage.token = data.token;
               this.$router.push("/");
             }
           } else {
             this.loginCodeError = "Не правильний код підтвердження";
-            this.okLogin = false;
+            this.loadingBtn = false;
           }
 
           this.submitBlock = false;
@@ -211,44 +213,37 @@ export default {
         }
 
         this.submitBlock = true;
-        this.okLogin = true;
+        this.loadingBtn = true;
 
-        const res = await fetch("/api/signUp", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: this.form.email,
-            login_code: this.form.login_code,
-            firstname: this.form.firstname,
-            lastname: this.form.lastname,
-          }),
+        socket.emit("signUp", {
+          email: this.form.email,
+          login_code: this.form.login_code,
+          firstname: this.form.firstname,
+          lastname: this.form.lastname,
         });
-        const data = await res.json(); // token ("..." | null)
-        console.log(data);
+        // token ("..." | null)
+        socket.on("signUp", (data) => {
+          if (data.token !== null) {
+            localStorage.token = data.token;
+            this.$router.push("/");
+          }
 
-        if (data.token !== null) {
-          localStorage.token = data.token;
-          this.$router.push("/");
-        }
-
-        this.submitBlock = false;
+          this.submitBlock = false;
+        });
       }
     },
   },
-  mounted() {
+  created() {
     if (localStorage.token) {
       this.$router.push("/");
+
+      return;
     }
-  },
-  created() {
+
     this.$vuetify.theme.dark = true;
     this.$vuetify.theme.themes.dark.background = "#353535";
     this.$vuetify.theme.themes.dark.primary = "#fed81f";
     // this.$vuetify.theme.themes.light.accent = "#c08fff";
-
-    // console.log(this.$vuetify.theme);
   },
 };
 </script>
