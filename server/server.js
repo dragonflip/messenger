@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // app.use("/api/editMessage", require("./routes/editMessage"));
 
 // app.use("/api/getUserID", require("./routes/getUserID"));
-app.use("/api/getUsers", require("./routes/getUsers"));
+//app.use("/api/getUsers", require("./routes/getUsers"));
 app.use("/api/getProfile", require("./routes/getProfile"));
 app.use("/api/editProfile", require("./routes/editProfile"));
 
@@ -40,6 +40,7 @@ io.on("connection", (socket) => {
   require("./sockets/editMessage")(io, socket);
 
   require("./sockets/getUserID")(io, socket);
+  require("./sockets/getUsers")(io, socket);
 
   // console.log(`Socket connected ${socket.id}`);
 });
