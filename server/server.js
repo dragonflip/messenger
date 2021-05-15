@@ -11,9 +11,6 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Routes
-var sendCode = require("./sockets/sendCode");
-//var signIn = require("./sockets/signIn");
-//var signUp = require("./sockets/signUp");
 
 //app.use("/api/sendCode", require("./routes/sendCode"));
 app.use("/api/signIn", require("./routes/signIn"));
@@ -30,18 +27,28 @@ app.use("/api/getUsers", require("./routes/getUsers"));
 app.use("/api/getProfile", require("./routes/getProfile"));
 app.use("/api/editProfile", require("./routes/editProfile"));
 
-io.on("connection", (socket) => {
-  console.log("Socket connected");
+//Sockets
 
-  socket.on("sendCode", function(data){
+const sendCode = require("./sockets/sendCode");
+
+const onConnection = (socket) => {
+  sendCode(io, socket);
+}
+
+io.on("connection", onConnection);
+  //console.log("Socket connected");
+
+  /*socket.on("sendCode", function(data){
     sendCode(socket, data);
-  })
+  })*/
+
   //socket.emit("hello_user");
 
   /*socket.on("hello", (data) => {
     console.log(`${data.user} said hello!`);
   });*/
-});
+
+
 
 // SPA
 app.get("*", (req, res) => {

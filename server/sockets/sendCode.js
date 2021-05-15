@@ -1,3 +1,4 @@
+const db = require("../config/db");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
@@ -14,12 +15,13 @@ let transporter = nodemailer.createTransport({
   },
 });
 
-module.exports = function sendCode (socket, data){
-    let[result] = db.query("SELECT * FROM users WHERE email = ('" + data.email + "')");
+module.exports = (io, socket) => {
+  const sendcode = (email) => {
+    let[result] = db.query("SELECT * FROM users WHERE email = ('" + email + "')");
     let Code = randomNumber(10000, 99999);
 
     transporter.sendMail({
-        to: data.email,
+        to: email,
         subject: "Підтвердження входу в обліковий запис",
         text: `Доброго дня. Ваш код підтвердження входу в обліковий запис: ${Code}`,
     });
@@ -38,4 +40,7 @@ module.exports = function sendCode (socket, data){
     else {
         io.emit("result", { need_register: true })
     }
+  }
+
+  socket.on("sendCode", sendcode);
 }
