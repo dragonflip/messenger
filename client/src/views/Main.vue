@@ -15,13 +15,12 @@
         color="primary"
         v-if="loading"
       ></v-progress-linear>
-
+      <!-- @keydown="edit_profile = false" -->
       <v-dialog
         v-model="profile_dialog"
         max-width="450"
         :fullscreen="$vuetify.breakpoint.mobile"
         @click:outside="edit_profile = false"
-        @keydown="edit_profile = false"
       >
         <v-card>
           <v-card-title class="headline">
@@ -477,7 +476,7 @@
 
         <div v-if="chat_id > 0" class="messages_view d-flex flex-column w-100">
           <div
-            class="messages d-flex flex-column px-5"
+            class="messages d-flex flex-column px-5 py-5"
             id="messages"
             style="overflow-y: auto"
             :style="
@@ -556,10 +555,7 @@
               </span>
             </div>
           </div>
-          <div
-            class="send_message w-100 d-flex"
-            :class="$vuetify.breakpoint.mobile ? 'pb-2' : 'py-2'"
-          >
+          <div class="send_message w-100 d-flex">
             <form class="d-flex w-100" @submit.prevent="send_message()">
               <v-textarea
                 v-model="messageTextBox"
@@ -622,7 +618,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.4.6",
+      version: "0.4.8",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
@@ -639,10 +635,7 @@ export default {
       return;
     },
     send_message: async function (e) {
-      if (
-        !e ||
-        (e.keyCode === 13 && !e.shiftKey && !this.$vuetify.breakpoint.mobile)
-      ) {
+      if (!e || (e.keyCode === 13 && !e.shiftKey && !this.isMobile())) {
         if (!this.messageTextBox.trim()) {
           this.messageTextBox = "";
           return;

@@ -2,12 +2,12 @@ import Vue from "vue";
 import App from "./App.vue";
 import router from "./router";
 import vuetify from "./plugins/vuetify";
-import socket from "./plugins/socket";
+import settings from "./plugins/settings";
 
 // UNCOMMENT AFTER DEPLOY
 // Vue.config.productionTip = false;
 
-Vue.use(socket);
+Vue.use(settings);
 
 new Vue({
   router,
