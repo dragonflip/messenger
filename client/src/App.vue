@@ -51,6 +51,5 @@ select:-webkit-autofill:focus {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
-  opacity: 0;
 }
 </style>

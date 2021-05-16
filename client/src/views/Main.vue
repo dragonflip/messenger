@@ -15,12 +15,12 @@
         color="primary"
         v-if="loading"
       ></v-progress-linear>
-      <!-- @keydown="edit_profile = false" -->
       <v-dialog
         v-model="profile_dialog"
         max-width="450"
         :fullscreen="$vuetify.breakpoint.mobile"
         @click:outside="edit_profile = false"
+        @keydown.esc="edit_profile = false"
       >
         <v-card>
           <v-card-title class="headline">
@@ -231,10 +231,21 @@
           </v-card-title>
           <v-card-subtitle>Онлайн: {{ usersOnline }}</v-card-subtitle>
 
+          <v-text-field
+            type="text"
+            v-model.trim="searchQuery"
+            name="search"
+            label="Пошук за іменем чи поштою"
+            autocomplete="off"
+            hide-details="auto"
+            class="mx-4"
+            outlined
+          ></v-text-field>
+
           <v-list three-line>
             <v-list-item
               v-ripple
-              v-for="(user, i) in users"
+              v-for="(user, i) in peopleSearch"
               :key="i"
               @click="selectUser(user.id)"
             >
@@ -474,16 +485,15 @@
           </v-app-bar>
         </div>
 
-        <div v-if="chat_id > 0" class="messages_view d-flex flex-column w-100">
+        <div
+          v-if="chat_id > 0"
+          class="messages_view d-flex flex-column"
+          style="height: calc(100vh - 70px)"
+        >
           <div
-            class="messages d-flex flex-column px-5 py-5"
+            class="messages d-flex flex-column px-5 py-5 h-100"
             id="messages"
             style="overflow-y: auto"
-            :style="
-              $vuetify.breakpoint.mobile
-                ? 'height: calc(100vh - 120px)'
-                : 'height: calc(100vh - 140px)'
-            "
           >
             <v-menu
               v-model="messageMenu"
@@ -555,7 +565,7 @@
               </span>
             </div>
           </div>
-          <div class="send_message w-100 d-flex">
+          <div class="send_message d-flex">
             <form class="d-flex w-100" @submit.prevent="send_message()">
               <v-textarea
                 v-model="messageTextBox"
@@ -566,6 +576,7 @@
                 id="messageTextBox"
                 rows="1"
                 auto-grow
+                style="max-height: 300px; overflow-y: auto"
                 @keydown="send_message"
               ></v-textarea>
               <v-btn
@@ -600,7 +611,7 @@ export default {
     return {
       chats: {},
       messages: {},
-      users: {},
+      users: [],
       view: "chats",
       chat_id: 0,
       last_chat_id: 0,
@@ -618,12 +629,13 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.4.8",
+      version: "0.5.0",
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
       selected_message_id: 0,
       usersOnline: 0,
+      searchQuery: "",
     };
   },
   methods: {
@@ -812,7 +824,7 @@ export default {
           }
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, x, y, w, h, 0, 0, 128, 128);
+          ctx.drawImage(img, x, y, w, h, 0, 0, canvas.width, canvas.height);
 
           const result = canvas.toDataURL("image/webp");
           this.profile.profile_photo = result;
@@ -969,6 +981,21 @@ export default {
     this.users = await res.json();
     this.users = this.users.filter((user) => user.id !== this.user_id);
   },
+  computed: {
+    peopleSearch() {
+      return this.users.filter((user) => {
+        return (
+          user.firstname
+            .toLowerCase()
+            .includes(this.searchQuery.toLowerCase()) ||
+          user.lastname
+            .toLowerCase()
+            .includes(this.searchQuery.toLowerCase()) ||
+          user.email.toLowerCase().includes(this.searchQuery.toLowerCase())
+        );
+      });
+    },
+  },
 };
 </script>
 
@@ -1048,7 +1075,7 @@ export default {
 } */
 
 .messages .from a {
-  color: #000;
+  color: #fff;
 }
 
 .message_text {
