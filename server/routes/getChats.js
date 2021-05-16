@@ -41,6 +41,10 @@ router.get("/:token", async (req, res) => {
         chat.unread_count = count.unread_count;
       }
     });
+
+    if (!chat.unread_count) {
+      chat.unread_count = 0;
+    }
   });
 
   res.json(chats);

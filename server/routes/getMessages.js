@@ -6,8 +6,9 @@ const moment = require("moment");
 
 router.get("/:token/:to_id", async (req, res) => {
   let [chats] = await db.query(
-    `SELECT * FROM messages WHERE ( messages.from_id = (SELECT id FROM users WHERE token = '${req.params.token}') OR messages.to_id = (SELECT id FROM users WHERE token = '${req.params.token}') ) AND (messages.from_id = (SELECT id FROM users WHERE id = '${req.params.to_id}') OR messages.to_id = (SELECT id FROM users WHERE id = '${req.params.to_id}'))`
+    `SELECT * FROM messages WHERE ( messages.from_id = (SELECT id FROM users WHERE token = '${req.params.token}') OR messages.to_id = (SELECT id FROM users WHERE token = '${req.params.token}') ) AND ( messages.from_id = (SELECT id FROM users WHERE id = '${req.params.to_id}') OR messages.to_id = (SELECT id FROM users WHERE id = '${req.params.to_id}')) ORDER BY id DESC LIMIT 50`
   );
+  chats = chats.reverse();
 
   await db.query(
     `UPDATE messages SET has_read = 1 WHERE messages.to_id = (SELECT id FROM users WHERE token = '${req.params.token}') AND messages.from_id = '${req.params.to_id}'`

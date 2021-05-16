@@ -10,19 +10,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use("/api/sendCode", require("./routes/sendCode"));
-app.use("/api/signIn", require("./routes/signIn"));
-app.use("/api/signUp", require("./routes/signUp"));
+// app.use("/api/sendCode", require("./routes/sendCode"));
+// app.use("/api/signIn", require("./routes/signIn"));
+// app.use("/api/signUp", require("./routes/signUp"));
 
-app.use("/api/getChats", require("./routes/getChats"));
-app.use("/api/getMessages", require("./routes/getMessages"));
-app.use("/api/sendMessage", require("./routes/sendMessage"));
+// app.use("/api/getChats", require("./routes/getChats"));
+// app.use("/api/getMessages", require("./routes/getMessages"));
+// app.use("/api/sendMessage", require("./routes/sendMessage"));
 app.use("/api/deleteMessage", require("./routes/deleteMessage"));
 app.use("/api/editMessage", require("./routes/editMessage"));
 
 app.use("/api/getUserID", require("./routes/getUserID"));
-app.use("/api/getUsers", require("./routes/getUsers"));
-app.use("/api/getProfile", require("./routes/getProfile"));
+// app.use("/api/getUsers", require("./routes/getUsers"));
+// app.use("/api/getProfile", require("./routes/getProfile"));
 app.use("/api/editProfile", require("./routes/editProfile"));
 
 let users = 0;
@@ -38,11 +38,14 @@ io.on("connection", (socket) => {
   require("./sockets/sendMessage")(io, socket);
   require("./sockets/deleteMessage")(io, socket);
   require("./sockets/editMessage")(io, socket);
+  require("./sockets/readMessage")(io, socket);
 
   require("./sockets/getUserID")(io, socket);
   require("./sockets/getUsers")(io, socket);
   require("./sockets/getProfile")(io, socket);
   require("./sockets/editProfile")(io, socket);
+
+  socket.emit("version", version);
 
   users++;
   io.emit("usersOnline", users);
@@ -62,3 +65,6 @@ app.get("*", (req, res) => {
 server.listen(5000, () => {
   console.log("Server running on http://localhost:5000");
 });
+
+// Info
+const version = "0.5.14";

@@ -396,7 +396,14 @@
                       <span v-if="chat.from_id === user_id">Ви:</span>
                       {{ chat.message }}
                     </div>
-                    <div class="unread_count" v-if="chat.unread_count > 0">
+                    <div
+                      class="unread_count"
+                      v-if="
+                        chat.unread_count > 0 &&
+                        !chat.has_read &&
+                        chat.from_id !== user_id
+                      "
+                    >
                       <v-badge
                         :content="chat.unread_count"
                         color="primary black--text"
@@ -537,7 +544,11 @@
                 class="message_text"
                 :style="!$vuetify.breakpoint.mobile ? 'user-select: text' : ''"
               >
-                <span v-if="message.message.slice(0, 4) == 'http'"
+                <span
+                  v-if="
+                    message.message.slice(0, 7) == 'http://' ||
+                    message.message.slice(0, 8) == 'https://'
+                  "
                   ><a :href="message.message" target="_blank">{{
                     message.message
                   }}</a></span
@@ -614,7 +625,6 @@ export default {
       users: [],
       view: "chats",
       chat_id: 0,
-      last_chat_id: 0,
       menu: false,
       loading: true,
       clicked: false,
@@ -629,7 +639,7 @@ export default {
       messageTextBox: "",
       to_id: 0,
       notifTimeout: false,
-      version: "0.5.0",
+      version: localStorage.version,
       messageMenu: false,
       messageMenuX: 0,
       messageMenuY: 0,
@@ -646,8 +656,10 @@ export default {
       location = "/login";
       return;
     },
-    send_message: async function (e) {
+    send_message: function (e) {
       if (!e || (e.keyCode === 13 && !e.shiftKey && !this.isMobile())) {
+        if (e) e.preventDefault();
+
         if (!this.messageTextBox.trim()) {
           this.messageTextBox = "";
           return;
@@ -656,63 +668,34 @@ export default {
         this.messageTextBox = this.messageTextBox.replace(/^\s*[\r\n]/gm, "");
         document.getElementById("messageTextBox").focus();
 
-        await fetch(`/api/sendMessage/${localStorage.token}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from_id: this.user_id,
-            to_id: this.chats[this.chat_id - 1].user_id,
-            message: this.messageTextBox,
-          }),
+        this.socket.emit("sendMessage", {
+          from_id: this.user_id,
+          to_id: this.chats[this.chat_id - 1].user_id,
+          message: this.messageTextBox,
         });
 
         this.messageTextBox = "";
 
-        // let last_chat_id = this.chat_id;
-
-        let res = await fetch(
-          `/api/getMessages/${localStorage.token}/${
-            this.chats[this.chat_id - 1].user_id
-          }`
-        );
-        this.messages = await res.json();
-
-        res = await fetch(`/api/getChats/${localStorage.token}`);
-        this.chats = await res.json();
-
-        this.chat_id = 1;
-
-        let scroll = await document.getElementById("messages");
-        scroll.scrollTop = scroll.scrollHeight;
+        this.$nextTick(() => {
+          let scroll = document.getElementById("messages");
+          scroll.scrollTop = scroll.scrollHeight;
+        });
 
         this.notifTimeout = true;
       }
     },
-    selectUser: async function (id) {
-      await fetch(`/api/sendMessage/${localStorage.token}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from_id: this.user_id,
-          to_id: id,
-          message: "Привіт, розпочнемо спілкування!",
-        }),
+    selectUser: function (id) {
+      this.socket.emit("sendMessage", {
+        from_id: this.user_id,
+        to_id: id,
+        message: "Привіт, розпочнемо спілкування!",
       });
-
-      let res = await fetch(`/api/getChats/${localStorage.token}`);
-      this.chats = await res.json();
 
       this.chat_id = 1;
       this.search_dialog = false;
-
       this.users = this.users.filter((user) => user.id !== id);
     },
     editProfile: async function () {
-      console.log(this.profile);
       if (!this.profile.firstname.trim()) {
         this.profile.firstname = "";
         return;
@@ -834,7 +817,7 @@ export default {
       };
     },
   },
-  async mounted() {
+  mounted() {
     window.onresize = () => {
       if (this.chat_id > 0) {
         let scroll = document.getElementById("messages");
@@ -846,10 +829,112 @@ export default {
       this.chat_id = 0;
     };
 
-    console.log(`Mobile device: ${this.$vuetify.breakpoint.mobile}`);
+    let audio = new Audio(
+      "https://audiokaif.ru/wp-content/uploads/2019/04/3-Звук-сообщения-вконтакте.mp3"
+    );
+
+    console.log(
+      `Mobile device: ${this.$vuetify.breakpoint.mobile} | ${this.isMobile()}`
+    );
+
+    this.socket.on("version", (version) => {
+      if (version !== this.version) {
+        localStorage.version = version;
+        location.reload();
+      }
+    });
 
     this.socket.on("usersOnline", (usersOnline) => {
       this.usersOnline = usersOnline;
+    });
+
+    this.socket.on("readMessage", (data) => {
+      if (data.from_id == this.user_id || data.to_id == this.user_id) {
+        try {
+          this.messages.forEach((message) => {
+            if (
+              message.from_id == data.from_id &&
+              message.to_id == data.to_id &&
+              !message.has_read
+            ) {
+              message.has_read = 1;
+            }
+          });
+        } catch {}
+        try {
+          this.chats.forEach((chat) => {
+            if (
+              chat.from_id == data.from_id &&
+              chat.to_id == data.to_id &&
+              !chat.has_read
+            ) {
+              chat.has_read = 1;
+            }
+          });
+        } catch {}
+      }
+    });
+
+    this.socket.on("sendMessage", (data) => {
+      // For me or from me
+      if (data.to_id == this.user_id || data.from_id == this.user_id) {
+        // Update messages
+        if (
+          (data.to_id == this.user_id && data.from_id == this.chat_user_id) ||
+          (data.from_id == this.user_id && data.to_id == this.chat_user_id)
+        ) {
+          this.messages.push(data);
+
+          if (data.from_id != this.user_id) {
+            this.socket.emit("readMessage", {
+              from_id: this.chat_user_id,
+              to_id: this.user_id,
+            });
+          }
+
+          this.$nextTick(() => {
+            let scroll = document.getElementById("messages");
+            scroll.scrollTop = scroll.scrollHeight;
+          });
+        } else {
+          audio.play().catch(() => {});
+        }
+
+        // Update chat
+        let chat = {
+          ...this.chats.filter(
+            (chat) =>
+              chat.user_id === data.from_id || chat.user_id === data.to_id
+          )[0],
+          ...data,
+        };
+
+        if (data.from_id !== this.user_id) {
+          chat.unread_count++;
+        }
+
+        chat.has_read = 0;
+
+        if (
+          data.from_id === this.chat_user_id ||
+          data.to_id === this.chat_user_id
+        ) {
+          this.chat_id = 1;
+        } else if (
+          this.chat_id >= 1 &&
+          this.chat_user_id !== data.from_id &&
+          this.chat_user_id !== data.to_id &&
+          this.chats[0].user_id !== chat.user_id
+        ) {
+          this.chat_id++;
+        }
+
+        this.chats = this.chats.filter(
+          (user) => user.user_id !== data.from_id && user.user_id !== data.to_id
+        );
+
+        this.chats.unshift(chat);
+      }
     });
 
     // Update online status
@@ -865,77 +950,41 @@ export default {
       }
     }, 55000);
 
-    // Check new messages
-    setInterval(async () => {
-      if (this.chat_id) {
-        let res = await fetch(
-          `/api/getMessages/${localStorage.token}/${
-            this.chats[this.chat_id - 1].user_id
-          }`
-        );
-        let data = await res.json();
-
-        if (data.length != this.messages.length) {
-          this.messages = data;
-
-          let scroll = await document.getElementById("messages");
-          scroll.scrollTop = scroll.scrollHeight;
-
-          if (!this.notifTimeout) {
-            let audio = new Audio(
-              "https://audiokaif.ru/wp-content/uploads/2019/04/3-Звук-сообщения-вконтакте.mp3"
-            );
-            audio.play();
-          }
-        }
-
-        this.messages = data;
-        this.notifTimeout = false;
-
-        // let scroll = await document.getElementById("messages");
-        // if (scroll.scrollTop != scroll.scrollHeight) {
-        //   scroll.scrollTop = scroll.scrollHeight;
-        // }
-      }
-
-      let res = await fetch(`/api/getChats/${localStorage.token}`);
-      let data = await res.json();
-
-      if (data.length) {
-        if (this.chats[0].from_id != data[0].from_id && this.chat_id > 1) {
-          console.log("New chat");
-
-          this.chats = data;
-          this.chat_id++;
-        } else {
-          this.chats = data;
-        }
-      }
-    }, 1000);
-
     this.loading = false;
   },
   watch: {
-    chat_id: async function (value) {
+    chat_id: function (value) {
       if (value > 0) {
         this.view = "messages";
         this.messages = {};
 
+        this.chat_user_id = this.chats[value - 1].user_id;
+
         // MESSAGES
-        let res = await fetch(
-          `/api/getMessages/${localStorage.token}/${
-            this.chats[value - 1].user_id
-          }`
-        );
-        this.messages = await res.json();
-        this.chats[value - 1].unread_count = 0;
+        this.socket.emit("getMessages", {
+          token: localStorage.token,
+          to_id: this.chat_user_id,
+        });
+        this.socket.on("getMessages", (data) => {
+          this.messages = data;
+          this.chats[value - 1].unread_count = 0;
 
-        if (!this.$vuetify.breakpoint.mobile) {
-          document.getElementById("messageTextBox").focus();
-        }
+          if (!this.chats[this.chat_id - 1].has_read) {
+            this.socket.emit("readMessage", {
+              to_id: this.user_id,
+              from_id: this.chat_user_id,
+            });
+          }
 
-        let scroll = await document.getElementById("messages");
-        scroll.scrollTop = scroll.scrollHeight;
+          if (!this.isMobile()) {
+            document.getElementById("messageTextBox").focus();
+          }
+
+          this.$nextTick(() => {
+            let scroll = document.getElementById("messages");
+            scroll.scrollTop = scroll.scrollHeight;
+          });
+        });
 
         if (location.hash != "#messages" && this.$vuetify.breakpoint.mobile) {
           history.pushState({}, null, "#messages");
@@ -945,7 +994,7 @@ export default {
       }
     },
   },
-  async created() {
+  created() {
     if (!localStorage.token) {
       this.logout();
     }
@@ -955,31 +1004,36 @@ export default {
     this.$vuetify.theme.themes.dark.accent = "#333";
 
     // USER_ID
-    let res = await fetch(`/api/getUserID/${localStorage.token}`);
-    const data = await res.json();
+    this.socket.emit("getUserID", { token: localStorage.token });
+    this.socket.on("getUserID", (data) => {
+      if (data.user_id !== null) {
+        this.user_id = data.user_id;
+        this.socket.emit("getUsers");
 
-    // MY PROFILE
-    if (data.user_id !== null) {
-      this.user_id = data.user_id;
-
-      let res = await fetch(`/api/getProfile/${this.user_id}`);
-      this.profile = await res.json();
-    } else {
-      this.logout();
-    }
+        // MY PROFILE
+        this.socket.emit("getProfile", { id: this.user_id });
+        this.socket.on("getProfile", (data) => {
+          this.profile = data;
+        });
+      } else {
+        this.logout();
+      }
+    });
 
     // CHATS
-    res = await fetch(`/api/getChats/${localStorage.token}`);
-    this.chats = await res.json();
+    this.socket.emit("getChats", { token: localStorage.token });
+    this.socket.on("getChats", (data) => {
+      this.chats = data;
 
-    if (!this.chats.length) {
-      this.search_dialog = true;
-    }
+      if (!this.chats.length) {
+        this.search_dialog = true;
+      }
+    });
 
-    // Search Users
-    res = await fetch(`/api/getUsers`);
-    this.users = await res.json();
-    this.users = this.users.filter((user) => user.id !== this.user_id);
+    // Get all users for search
+    this.socket.on("getUsers", (data) => {
+      this.users = data.filter((user) => user.id !== this.user_id);
+    });
   },
   computed: {
     peopleSearch() {

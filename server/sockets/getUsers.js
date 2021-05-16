@@ -5,9 +5,9 @@ module.exports = (io, socket) => {
     let [users] = await db.query(`SELECT * FROM users`);
 
     if (users.length > 0) {
-        socket.emit("getUsers", users)
+      socket.emit("getUsers", users);
     } else {
-        socket.emit("getUsers", { users: null })
+      socket.emit("getUsers", { users: null });
     }
   });
 };
