@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 // app.use("/api/getChats", require("./routes/getChats"));
 // app.use("/api/getMessages", require("./routes/getMessages"));
 // app.use("/api/sendMessage", require("./routes/sendMessage"));
-app.use("/api/deleteMessage", require("./routes/deleteMessage"));
+// app.use("/api/deleteMessage", require("./routes/deleteMessage"));
 app.use("/api/editMessage", require("./routes/editMessage"));
 
 // app.use("/api/getUserID", require("./routes/getUserID"));
@@ -48,18 +48,24 @@ io.on("connection", async (socket) => {
   require("./sockets/editProfile")(io, socket);
   require("./sockets/setOnlineStatus")(io, socket);
 
-  if (+socket.handshake.query.token && +socket.handshake.query.visibility) {
+  if (
+    socket.handshake.query.token != "null" &&
+    socket.handshake.query.visibility != "false"
+  ) {
     await db.query(
       `UPDATE users SET was_online = 0 WHERE token = "${socket.handshake.query.token}"`
     );
     let [user] = await db.query(
       `SELECT id FROM users WHERE token = "${socket.handshake.query.token}"`
     );
-    io.emit("setOnlineStatus", {
-      online: true,
-      user_id: user[0].id,
-      was_online: 0,
-    });
+
+    if (user.length) {
+      io.emit("setOnlineStatus", {
+        online: true,
+        user_id: user[0].id,
+        was_online: 0,
+      });
+    }
   }
 
   socket.emit("version", version);
@@ -71,7 +77,10 @@ io.on("connection", async (socket) => {
     users--;
     io.emit("usersOnline", users);
 
-    if (+socket.handshake.query.token) {
+    if (
+      socket.handshake.query.token != "null" &&
+      socket.handshake.query.visibility != "false"
+    ) {
       await db.query(
         `UPDATE users SET was_online = "${moment().unix()}" WHERE token = "${
           socket.handshake.query.token
@@ -80,11 +89,14 @@ io.on("connection", async (socket) => {
       let [user] = await db.query(
         `SELECT id FROM users WHERE token = "${socket.handshake.query.token}"`
       );
-      io.emit("setOnlineStatus", {
-        online: false,
-        user_id: user[0].id,
-        was_online: moment.unix(moment().unix()).fromNow(),
-      });
+
+      if (user.length) {
+        io.emit("setOnlineStatus", {
+          online: false,
+          user_id: user[0].id,
+          was_online: moment().unix(),
+        });
+      }
     }
   });
 });
@@ -100,4 +112,4 @@ server.listen(5000, () => {
 });
 
 // Info
-const version = "0.6.9";
+const version = "0.6.11";

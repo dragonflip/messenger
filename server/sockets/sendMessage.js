@@ -13,8 +13,6 @@ module.exports = (io, socket) => {
     data.sent_date = moment.unix(moment().unix()).format("HH:mm");
     data.id = res.insertId;
 
-    console.log(data);
-
     io.emit("sendMessage", data);
   });
 };

@@ -1050,7 +1050,11 @@ export default {
         user_id: this.user_id,
       });
 
-      if (this.chat_id > 0 && this.isTabActive) {
+      if (
+        this.chat_id > 0 &&
+        !this.chats[this.chat_id - 1].has_read &&
+        this.isTabActive
+      ) {
         console.log(`Read message after open tab: ${this.isTabActive}`);
         this.socket.emit("readMessage", {
           from_id: this.chat_user_id,
