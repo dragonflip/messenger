@@ -8,10 +8,6 @@ module.exports = (io, socket) => {
     );
     messages = messages.reverse();
 
-    // await db.query(
-    //   `UPDATE messages SET has_read = 1 WHERE messages.to_id = (SELECT id FROM users WHERE token = '${data.token}') AND messages.from_id = '${data.to_id}'`
-    // );
-
     moment.locale("uk");
 
     messages.forEach((message) => {

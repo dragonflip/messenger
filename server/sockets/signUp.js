@@ -6,9 +6,9 @@ require("dotenv").config();
 module.exports = (io, socket) => {
   socket.on("signUp", async (data) => {
     let user = {
-      email: data.email,
-      firstname: data.firstname,
-      lastname: data.lastname,
+      email: db.esc(data.email),
+      firstname: db.esc(data.firstname),
+      lastname: db.esc(data.lastname),
       token: crypto.randomBytes(32).toString("hex"),
       bio: "",
     };

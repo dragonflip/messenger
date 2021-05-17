@@ -5,16 +5,19 @@ require("dotenv").config();
 
 module.exports = (io, socket) => {
   socket.on("signIn", async (data) => {
+    const email = db.esc(data.email);
+    const login_code = db.esc(data.login_code);
+
     let [result] = await db.query(
-      `SELECT * FROM login_codes WHERE email = "${data.email}" AND login_code = "${data.login_code}"`
+      `SELECT * FROM login_codes WHERE email = "${email}" AND login_code = "${login_code}"`
     );
 
     if (result.length > 0) {
       const token = crypto.randomBytes(32).toString("hex");
 
-      await db.query(`DELETE FROM login_codes WHERE email = "${data.email}"`);
+      await db.query(`DELETE FROM login_codes WHERE email = "${email}"`);
       await db.query(
-        `UPDATE users SET token = "${token}" WHERE email = "${data.email}"`
+        `UPDATE users SET token = "${token}" WHERE email = "${email}"`
       );
 
       socket.emit("signIn", { token: token });

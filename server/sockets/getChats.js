@@ -27,11 +27,11 @@ module.exports = (io, socket) => {
         chat.sent_date = moment.unix(chat.sent_date).format("HH:mm");
       }
 
-      if (chat.was_online > moment().unix()) {
+      if (!chat.was_online) {
         chat.online = true;
       } else {
         chat.online = false;
-        chat.was_online = moment.unix(chat.was_online).fromNow();
+        // chat.was_online = moment.unix().fromNow();
       }
 
       unread_count.forEach((count) => {

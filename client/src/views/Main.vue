@@ -81,7 +81,14 @@
 
           <h5 class="text-center mt-2">
             {{ profile.firstname }} {{ profile.lastname }}
-            <h6 class="primary--text mt-1">Online</h6>
+            <h6 class="mt-1">
+              <span class="primary--text" v-if="!profile.was_online"
+                >Онлайн</span
+              >
+              <span class="white--text" v-else
+                >В мережі {{ profile.was_online }}</span
+              >
+            </h6>
           </h5>
 
           <v-btn
@@ -303,7 +310,16 @@
                   @click="menu = !menu"
                   v-on="on"
                 ></v-app-bar-nav-icon>
-                <v-toolbar-title>Daki</v-toolbar-title>
+                <v-toolbar-title>
+                  <span v-if="connecting">
+                    <v-progress-circular
+                      indeterminate
+                      color="primary"
+                    ></v-progress-circular>
+                    Підключення...
+                  </span>
+                  <span v-else>Daki</span>
+                </v-toolbar-title>
                 <v-spacer></v-spacer>
                 <v-btn icon @click="search_dialog = true">
                   <v-icon>mdi-magnify</v-icon>
@@ -480,8 +496,10 @@
                     : 'font-size: 60%'
                 "
                 v-else
-                >В мережі {{ chats[chat_id - 1].was_online }}</span
               >
+                В мережі
+                {{ lastSeen }}
+              </span>
             </h5>
 
             <v-spacer></v-spacer>
@@ -616,11 +634,14 @@
 </template>
 
 <script>
+import moment from "moment";
+moment.locale("uk");
+
 export default {
   name: "Main",
   data() {
     return {
-      chats: {},
+      chats: [],
       messages: {},
       users: [],
       view: "chats",
@@ -646,6 +667,10 @@ export default {
       selected_message_id: 0,
       usersOnline: 0,
       searchQuery: "",
+      isTabActive: document.visibilityState === "visible",
+      connecting: false,
+      moment: moment,
+      lastSeen: "",
     };
   },
   methods: {
@@ -762,12 +787,7 @@ export default {
       ).style.userSelect = "none";
     },
     deleteMessage: async function () {
-      await fetch(
-        `/api/deleteMessage/${localStorage.token}/${this.selected_message_id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      this.socket.emit("deleteMessage", { id: this.selected_message_id });
     },
     profilePhotoUpload: function (e) {
       const img = new Image();
@@ -837,6 +857,10 @@ export default {
       `Mobile device: ${this.$vuetify.breakpoint.mobile} | ${this.isMobile()}`
     );
 
+    document.addEventListener("visibilitychange", () => {
+      this.isTabActive = document.visibilityState === "visible";
+    });
+
     this.socket.on("version", (version) => {
       if (version !== this.version) {
         localStorage.version = version;
@@ -848,9 +872,72 @@ export default {
       this.usersOnline = usersOnline;
     });
 
+    this.socket.on("setOnlineStatus", (data) => {
+      if (data.user_id !== this.user_id) {
+        let chat_index = this.chats.findIndex(
+          (chat) => chat.user_id === data.user_id
+        );
+
+        if (chat_index !== -1) {
+          this.chats[chat_index].online = data.online;
+
+          if (!data.online) {
+            this.chats[chat_index].was_online = data.was_online;
+
+            if (this.chat_id > 0) {
+              this.lastSeen = moment
+                .unix(this.chats[this.chat_id - 1].was_online)
+                .fromNow();
+            }
+          }
+        }
+      } else {
+        if (!this.profile.was_online) {
+          this.profile.was_online = moment.unix(data.was_online).fromNow();
+        } else {
+          this.profile.was_online = data.was_online;
+        }
+      }
+    });
+
+    this.socket.on("getMessages", (data) => {
+      this.messages = data;
+      console.log("getMessages");
+
+      if (!this.isMobile()) {
+        document.getElementById("messageTextBox").focus();
+      }
+
+      if (
+        !this.chats[this.chat_id - 1].has_read &&
+        this.chats[this.chat_id - 1].from_id != this.user_id
+      ) {
+        console.log(`Read chat message after select`);
+        this.socket.emit("readMessage", {
+          to_id: this.user_id,
+          from_id: this.chat_user_id,
+        });
+      }
+
+      this.$nextTick(() => {
+        let scroll = document.getElementById("messages");
+        scroll.scrollTop = scroll.scrollHeight;
+      });
+    });
+
+    this.socket.on("deleteMessage", (data) => {
+      if (this.chat_id > 0) {
+        this.messages = this.messages.filter(
+          (message) => message.id !== data.id
+        );
+      }
+
+      this.socket.emit("getChats", { token: localStorage.token });
+    });
+
     this.socket.on("readMessage", (data) => {
       if (data.from_id == this.user_id || data.to_id == this.user_id) {
-        try {
+        if (this.chat_id > 0) {
           this.messages.forEach((message) => {
             if (
               message.from_id == data.from_id &&
@@ -858,20 +945,21 @@ export default {
               !message.has_read
             ) {
               message.has_read = 1;
+              message.unread_count = 0;
             }
           });
-        } catch {}
-        try {
-          this.chats.forEach((chat) => {
-            if (
-              chat.from_id == data.from_id &&
-              chat.to_id == data.to_id &&
-              !chat.has_read
-            ) {
-              chat.has_read = 1;
-            }
-          });
-        } catch {}
+        }
+
+        this.chats.forEach((chat) => {
+          if (
+            chat.from_id == data.from_id &&
+            chat.to_id == data.to_id &&
+            !chat.has_read
+          ) {
+            chat.has_read = 1;
+            chat.unread_count = 0;
+          }
+        });
       }
     });
 
@@ -885,7 +973,8 @@ export default {
         ) {
           this.messages.push(data);
 
-          if (data.from_id != this.user_id) {
+          if (data.from_id != this.user_id && this.isTabActive) {
+            console.log(`Read message after send: ${this.isTabActive}`);
             this.socket.emit("readMessage", {
               from_id: this.chat_user_id,
               to_id: this.user_id,
@@ -915,40 +1004,17 @@ export default {
 
         chat.has_read = 0;
 
-        if (
-          data.from_id === this.chat_user_id ||
-          data.to_id === this.chat_user_id
-        ) {
-          this.chat_id = 1;
-        } else if (
-          this.chat_id >= 1 &&
-          this.chat_user_id !== data.from_id &&
-          this.chat_user_id !== data.to_id &&
-          this.chats[0].user_id !== chat.user_id
-        ) {
-          this.chat_id++;
-        }
-
         this.chats = this.chats.filter(
           (user) => user.user_id !== data.from_id && user.user_id !== data.to_id
         );
-
         this.chats.unshift(chat);
+
+        let prev_chat = this.chats.findIndex(
+          (chat) => chat.user_id === this.chat_user_id
+        );
+        this.chat_id = prev_chat + 1;
       }
     });
-
-    // Update online status
-    setInterval(async () => {
-      if (!document.hidden) {
-        let res = await fetch(`/api/getUserID/${localStorage.token}`);
-        const data = await res.json();
-        this.user_id = data.user_id;
-
-        if (this.user_id === null) {
-          this.logout();
-        }
-      }
-    }, 55000);
 
     this.loading = false;
   },
@@ -956,34 +1022,19 @@ export default {
     chat_id: function (value) {
       if (value > 0) {
         this.view = "messages";
-        this.messages = {};
+        // this.messages = {};
 
         this.chat_user_id = this.chats[value - 1].user_id;
+
+        // Last seen status
+        this.lastSeen = moment
+          .unix(this.chats[this.chat_id - 1].was_online)
+          .fromNow();
 
         // MESSAGES
         this.socket.emit("getMessages", {
           token: localStorage.token,
           to_id: this.chat_user_id,
-        });
-        this.socket.on("getMessages", (data) => {
-          this.messages = data;
-          this.chats[value - 1].unread_count = 0;
-
-          if (!this.chats[this.chat_id - 1].has_read) {
-            this.socket.emit("readMessage", {
-              to_id: this.user_id,
-              from_id: this.chat_user_id,
-            });
-          }
-
-          if (!this.isMobile()) {
-            document.getElementById("messageTextBox").focus();
-          }
-
-          this.$nextTick(() => {
-            let scroll = document.getElementById("messages");
-            scroll.scrollTop = scroll.scrollHeight;
-          });
         });
 
         if (location.hash != "#messages" && this.$vuetify.breakpoint.mobile) {
@@ -993,47 +1044,20 @@ export default {
         this.view = "chats";
       }
     },
-  },
-  created() {
-    if (!localStorage.token) {
-      this.logout();
-    }
+    isTabActive: function () {
+      this.socket.emit("setOnlineStatus", {
+        online: this.isTabActive,
+        user_id: this.user_id,
+      });
 
-    this.$vuetify.theme.dark = true;
-    this.$vuetify.theme.themes.dark.primary = "#fed81f";
-    this.$vuetify.theme.themes.dark.accent = "#333";
-
-    // USER_ID
-    this.socket.emit("getUserID", { token: localStorage.token });
-    this.socket.on("getUserID", (data) => {
-      if (data.user_id !== null) {
-        this.user_id = data.user_id;
-        this.socket.emit("getUsers");
-
-        // MY PROFILE
-        this.socket.emit("getProfile", { id: this.user_id });
-        this.socket.on("getProfile", (data) => {
-          this.profile = data;
+      if (this.chat_id > 0 && this.isTabActive) {
+        console.log(`Read message after open tab: ${this.isTabActive}`);
+        this.socket.emit("readMessage", {
+          from_id: this.chat_user_id,
+          to_id: this.user_id,
         });
-      } else {
-        this.logout();
       }
-    });
-
-    // CHATS
-    this.socket.emit("getChats", { token: localStorage.token });
-    this.socket.on("getChats", (data) => {
-      this.chats = data;
-
-      if (!this.chats.length) {
-        this.search_dialog = true;
-      }
-    });
-
-    // Get all users for search
-    this.socket.on("getUsers", (data) => {
-      this.users = data.filter((user) => user.id !== this.user_id);
-    });
+    },
   },
   computed: {
     peopleSearch() {
@@ -1049,6 +1073,73 @@ export default {
         );
       });
     },
+  },
+  created() {
+    if (!localStorage.token) {
+      this.logout();
+    }
+
+    this.$vuetify.theme.dark = true;
+    this.$vuetify.theme.themes.dark.primary = "#fed81f";
+    this.$vuetify.theme.themes.dark.accent = "#333";
+
+    this.socket.on("connect", () => {
+      this.loading = false;
+      this.connecting = false;
+    });
+
+    this.socket.on("disconnect", () => {
+      this.loading = true;
+      this.connecting = true;
+    });
+
+    // USER_ID
+    this.socket.emit("getUserID", { token: localStorage.token });
+    this.socket.on("getUserID", (data) => {
+      if (data.user_id !== null) {
+        this.user_id = data.user_id;
+        this.socket.emit("getUsers");
+
+        // MY PROFILE
+        this.socket.emit("getProfile", { id: this.user_id });
+      } else {
+        this.logout();
+      }
+    });
+
+    // MY PROFILE
+    this.socket.on("getProfile", (data) => {
+      this.profile = data;
+    });
+
+    // CHATS
+    this.socket.emit("getChats", { token: localStorage.token });
+    this.socket.on("getChats", (data) => {
+      this.chats = data;
+
+      if (!this.chats.length) {
+        this.search_dialog = true;
+      }
+
+      let prev_chat = this.chats.findIndex(
+        (chat) => chat.user_id === this.chat_user_id
+      );
+      this.chat_id = prev_chat + 1;
+    });
+
+    // Get all users for search
+    this.socket.on("getUsers", (data) => {
+      this.users = data.filter((user) => user.id !== this.user_id);
+    });
+
+    // Update last seen status
+    setInterval(() => {
+      if (this.chat_id > 0) {
+        this.lastSeen = moment
+          .unix(this.chats[this.chat_id - 1].was_online)
+          .fromNow();
+      }
+    }, 10000);
   },
 };
 </script>

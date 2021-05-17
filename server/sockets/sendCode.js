@@ -18,23 +18,25 @@ let transporter = nodemailer.createTransport({
 
 module.exports = (io, socket) => {
   socket.on("sendCode", async (data) => {
+    const email = db.esc(data.email);
+
     let [result] = await db.query(
-      `SELECT * FROM users WHERE email = "${data.email}"`
+      `SELECT * FROM users WHERE email = "${email}"`
     );
     let Code = randomNumber(10000, 99999);
 
     transporter.sendMail({
-      to: data.email,
+      to: email,
       subject: "Підтвердження входу в обліковий запис",
       text: `Доброго дня. Ваш код підтвердження входу в обліковий запис: ${Code}`,
     });
 
     let user = {
-      email: data.email,
+      email: email,
       login_code: Code,
     };
 
-    await db.query(`DELETE FROM login_codes WHERE email = ("${data.email}")`);
+    await db.query(`DELETE FROM login_codes WHERE email = ("${email}")`);
     await db.query(`INSERT INTO login_codes set ?`, user);
 
     if (result.length > 0) {

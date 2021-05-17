@@ -3,6 +3,8 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const io = require("socket.io")(server);
+const db = require("./config/db");
+const moment = require("moment");
 
 // Middleware
 app.use(express.static(__dirname + "/public"));
@@ -20,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/deleteMessage", require("./routes/deleteMessage"));
 app.use("/api/editMessage", require("./routes/editMessage"));
 
-app.use("/api/getUserID", require("./routes/getUserID"));
+// app.use("/api/getUserID", require("./routes/getUserID"));
 // app.use("/api/getUsers", require("./routes/getUsers"));
 // app.use("/api/getProfile", require("./routes/getProfile"));
 app.use("/api/editProfile", require("./routes/editProfile"));
@@ -28,7 +30,7 @@ app.use("/api/editProfile", require("./routes/editProfile"));
 let users = 0;
 
 // Sockets
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   require("./sockets/sendCode")(io, socket);
   require("./sockets/signIn")(io, socket);
   require("./sockets/signUp")(io, socket);
@@ -44,15 +46,46 @@ io.on("connection", (socket) => {
   require("./sockets/getUsers")(io, socket);
   require("./sockets/getProfile")(io, socket);
   require("./sockets/editProfile")(io, socket);
+  require("./sockets/setOnlineStatus")(io, socket);
+
+  if (+socket.handshake.query.token && +socket.handshake.query.visibility) {
+    await db.query(
+      `UPDATE users SET was_online = 0 WHERE token = "${socket.handshake.query.token}"`
+    );
+    let [user] = await db.query(
+      `SELECT id FROM users WHERE token = "${socket.handshake.query.token}"`
+    );
+    io.emit("setOnlineStatus", {
+      online: true,
+      user_id: user[0].id,
+      was_online: 0,
+    });
+  }
 
   socket.emit("version", version);
 
   users++;
   io.emit("usersOnline", users);
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     users--;
     io.emit("usersOnline", users);
+
+    if (+socket.handshake.query.token) {
+      await db.query(
+        `UPDATE users SET was_online = "${moment().unix()}" WHERE token = "${
+          socket.handshake.query.token
+        }"`
+      );
+      let [user] = await db.query(
+        `SELECT id FROM users WHERE token = "${socket.handshake.query.token}"`
+      );
+      io.emit("setOnlineStatus", {
+        online: false,
+        user_id: user[0].id,
+        was_online: moment.unix(moment().unix()).fromNow(),
+      });
+    }
   });
 });
 
@@ -67,4 +100,4 @@ server.listen(5000, () => {
 });
 
 // Info
-const version = "0.5.14";
+const version = "0.6.9";
