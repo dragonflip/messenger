@@ -15,6 +15,7 @@
         color="primary"
         v-if="loading"
       ></v-progress-linear>
+
       <v-dialog
         v-model="profile_dialog"
         max-width="450"
@@ -282,6 +283,48 @@
         </v-card>
       </v-dialog>
 
+      <v-dialog
+        v-model="test_version_dialog"
+        max-width="450"
+        :fullscreen="$vuetify.breakpoint.mobile"
+      >
+        <v-card>
+          <v-card-title class="headline">
+            Перейти на тестову версію?
+
+            <v-spacer></v-spacer>
+
+            <v-btn elevation="0" icon @click="search_dialog = !search_dialog">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-card-title>
+          <v-card-subtitle>Про дану версію</v-card-subtitle>
+          <v-card-text>
+            <v-list>
+              <v-list-item v-ripple>1. Кастомний рендер інтерфейсу</v-list-item>
+              <v-list-item v-ripple>2. Швидке завантаження</v-list-item>
+              <v-list-item v-ripple>3. Плавність та 60 fps</v-list-item>
+            </v-list>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+
+            <v-btn color="red" text @click="test_version_dialog = false">
+              Скасувати
+            </v-btn>
+
+            <v-btn
+              color="green"
+              text
+              href="/test"
+              style="text-decoration: none"
+            >
+              Перейти
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
       <!-- <v-window v-model="view" style="position: fixed; top: 0; left: 0">
         <v-window-item :value="'chats'">
           <h4>1 сторінка</h4>
@@ -331,13 +374,17 @@
                 <v-icon class="pr-2">mdi-account-outline</v-icon>
                 Профіль
               </v-list-item>
-              <v-list-item>
+              <!-- <v-list-item>
                 <v-icon class="pr-2">mdi-folder-account-outline</v-icon>
                 Контакти
               </v-list-item>
               <v-list-item>
                 <v-icon class="pr-2">mdi-cog-outline</v-icon>
                 Налаштування
+              </v-list-item> -->
+              <v-list-item @click="test_version_dialog = true">
+                <v-icon class="pr-2">mdi-test-tube</v-icon>
+                Тестова версія
               </v-list-item>
               <v-list-item @click="logout()">
                 <v-icon color="red" class="pr-2">mdi-logout</v-icon>
@@ -497,8 +544,7 @@
                 "
                 v-else
               >
-                В мережі
-                {{ lastSeen }}
+                В мережі {{ lastSeen }}
               </span>
             </h5>
 
@@ -571,6 +617,16 @@
                     message.message
                   }}</a></span
                 >
+                <a
+                  v-else-if="message.attachment"
+                  :href="'/uploads/' + message.attachment"
+                  @click="savePrevChat()"
+                >
+                  <img
+                    :src="'/uploads/' + message.attachment"
+                    style="width: 100%; border-radius: 20px"
+                  />
+                </a>
                 <span v-else>{{ message.message }}</span>
               </div>
               <div class="message_time align-self-end ml-1">
@@ -608,6 +664,28 @@
                 style="max-height: 300px; overflow-y: auto"
                 @keydown="send_message"
               ></v-textarea>
+              <v-btn
+                icon
+                style="
+                  position: absolute;
+                  right: 70px;
+                  bottom: 15px;
+                  transform: rotate(45deg);
+                "
+                title="Прикріпити файл"
+                @click="$refs.message_file_upload.click()"
+              >
+                <v-icon>mdi-paperclip</v-icon>
+              </v-btn>
+
+              <input
+                type="file"
+                accept="image/*"
+                ref="message_file_upload"
+                v-show="false"
+                @change="messageFileUpload"
+              />
+
               <v-btn
                 type="submit"
                 x-large
@@ -651,6 +729,7 @@ export default {
       clicked: false,
       profile_dialog: false,
       search_dialog: false,
+      test_version_dialog: false,
       profile: {
         firstname: "",
         lastname: "",
@@ -738,18 +817,14 @@ export default {
         return;
       }
 
-      await fetch(`/api/editProfile/${localStorage.token}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          firstname: this.profile.firstname,
-          lastname: this.profile.lastname,
-          email: this.profile.email,
-          bio: this.profile.bio,
-          profile_photo: this.profile.profile_photo,
-        }),
+      this.socket.emit("editProfile", {
+        id: this.user_id,
+        token: localStorage.token,
+        firstname: this.profile.firstname,
+        lastname: this.profile.lastname,
+        email: this.profile.email,
+        bio: this.profile.bio,
+        profile_photo: this.profile.profile_photo,
       });
 
       this.edit_profile = false;
@@ -836,6 +911,33 @@ export default {
         };
       };
     },
+    messageFileUpload: function (e) {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(e.target.files[0]);
+
+      const filename = e.target.files[0].name;
+
+      reader.onload = (e) => {
+        let arrayBuffer = new Uint8Array(e.target.result);
+
+        this.socket.emit("sendMessage", {
+          from_id: this.user_id,
+          to_id: this.chats[this.chat_id - 1].user_id,
+          attachment: arrayBuffer,
+          filename: filename,
+          message: "Фото",
+        });
+
+        console.log(arrayBuffer);
+      };
+      console.log(e.target.files[0]);
+    },
+    savePrevChat: function () {
+      let prev_chat = this.chats.findIndex(
+        (chat) => chat.user_id === this.chat_user_id
+      );
+      localStorage.prev_chat = prev_chat + 1;
+    },
   },
   mounted() {
     window.onresize = () => {
@@ -892,7 +994,7 @@ export default {
           }
         }
       } else {
-        if (!this.profile.was_online) {
+        if (data.was_online) {
           this.profile.was_online = moment.unix(data.was_online).fromNow();
         } else {
           this.profile.was_online = data.was_online;
@@ -920,8 +1022,18 @@ export default {
       }
 
       this.$nextTick(() => {
-        let scroll = document.getElementById("messages");
-        scroll.scrollTop = scroll.scrollHeight;
+        let images = document.querySelectorAll(".message_text img");
+        let last_img = images[images.length - 1];
+
+        if (last_img) {
+          last_img.onload = () => {
+            let scroll = document.getElementById("messages");
+            scroll.scrollTop = scroll.scrollHeight;
+          };
+        } else {
+          let scroll = document.getElementById("messages");
+          scroll.scrollTop = scroll.scrollHeight;
+        }
       });
     });
 
@@ -973,17 +1085,29 @@ export default {
         ) {
           this.messages.push(data);
 
-          if (data.from_id != this.user_id && this.isTabActive) {
-            console.log(`Read message after send: ${this.isTabActive}`);
-            this.socket.emit("readMessage", {
-              from_id: this.chat_user_id,
-              to_id: this.user_id,
-            });
-          }
-
           this.$nextTick(() => {
-            let scroll = document.getElementById("messages");
-            scroll.scrollTop = scroll.scrollHeight;
+            if (data.from_id != this.user_id && this.isTabActive) {
+              console.log(`Read message after send: ${this.isTabActive}`);
+              this.socket.emit("readMessage", {
+                from_id: this.chat_user_id,
+                to_id: this.user_id,
+              });
+            }
+
+            let images = document.querySelectorAll(".message_text img");
+            let last_img = images[images.length - 1];
+
+            if (last_img) {
+              last_img.onload = () => {
+                let scroll = document.getElementById("messages");
+                scroll.scrollTop = scroll.scrollHeight;
+
+                console.log("load image scroll");
+              };
+            } else {
+              let scroll = document.getElementById("messages");
+              scroll.scrollTop = scroll.scrollHeight;
+            }
           });
         } else {
           audio.play().catch(() => {});
@@ -1016,13 +1140,29 @@ export default {
       }
     });
 
+    this.socket.on("editProfile", (data) => {
+      if (this.user_id === data.id) {
+        this.profile = data;
+      } else {
+        let chat_ind = this.chats.findIndex((chat) => chat.user_id === data.id);
+
+        if (chat_ind !== -1) {
+          this.chats[chat_ind].firstname = data.firstname;
+          this.chats[chat_ind].lastname = data.lastname;
+          this.chats[chat_ind].email = data.email;
+          this.chats[chat_ind].profile_photo = data.profile_photo;
+          this.chats[chat_ind].bio = data.bio;
+        }
+      }
+    });
+
     this.loading = false;
   },
   watch: {
     chat_id: function (value) {
       if (value > 0) {
         this.view = "messages";
-        // this.messages = {};
+        this.messages = {};
 
         this.chat_user_id = this.chats[value - 1].user_id;
 
@@ -1128,7 +1268,13 @@ export default {
       let prev_chat = this.chats.findIndex(
         (chat) => chat.user_id === this.chat_user_id
       );
-      this.chat_id = prev_chat + 1;
+
+      if (localStorage.prev_chat > 0) {
+        this.chat_id = +localStorage.prev_chat;
+        localStorage.prev_chat = 0;
+      } else {
+        this.chat_id = prev_chat + 1;
+      }
     });
 
     // Get all users for search

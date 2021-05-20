@@ -1,7 +1,7 @@
 <template>
   <div class="container-lg">
     <div
-      class="col-lg-4 col-md-6 col-sm-8 col-10 mx-auto d-flex align-items-center justify-content-center flex-column"
+      class="col-lg-4 col-md-6 col-sm-8 mx-auto d-flex align-items-center justify-content-center flex-column"
       style="height: 100vh"
     >
       <div class="text-center w-100" style="margin-bottom: 100px">

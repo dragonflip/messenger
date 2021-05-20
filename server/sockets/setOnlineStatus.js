@@ -21,6 +21,8 @@ module.exports = (io, socket) => {
       data.was_online = moment().unix();
     }
 
+    // console.log(data);
+
     io.emit("setOnlineStatus", data);
   });
 };

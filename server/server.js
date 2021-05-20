@@ -2,12 +2,15 @@ const express = require("express");
 const app = express();
 const http = require("http");
 const server = http.createServer(app);
-const io = require("socket.io")(server);
+const io = require("socket.io")(server, { maxHttpBufferSize: 1e7 });
 const db = require("./config/db");
 const moment = require("moment");
 
 // Middleware
 app.use(express.static(__dirname + "/public"));
+app.use(express.static(__dirname + "/test"));
+app.use("/uploads", express.static(__dirname + "/uploads"));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -20,12 +23,12 @@ app.use(express.urlencoded({ extended: true }));
 // app.use("/api/getMessages", require("./routes/getMessages"));
 // app.use("/api/sendMessage", require("./routes/sendMessage"));
 // app.use("/api/deleteMessage", require("./routes/deleteMessage"));
-app.use("/api/editMessage", require("./routes/editMessage"));
+// app.use("/api/editMessage", require("./routes/editMessage"));
 
 // app.use("/api/getUserID", require("./routes/getUserID"));
 // app.use("/api/getUsers", require("./routes/getUsers"));
 // app.use("/api/getProfile", require("./routes/getProfile"));
-app.use("/api/editProfile", require("./routes/editProfile"));
+// app.use("/api/editProfile", require("./routes/editProfile"));
 
 let users = 0;
 
@@ -77,10 +80,7 @@ io.on("connection", async (socket) => {
     users--;
     io.emit("usersOnline", users);
 
-    if (
-      socket.handshake.query.token != "null" &&
-      socket.handshake.query.visibility != "false"
-    ) {
+    if (socket.handshake.query.token != "null") {
       await db.query(
         `UPDATE users SET was_online = "${moment().unix()}" WHERE token = "${
           socket.handshake.query.token
@@ -101,6 +101,11 @@ io.on("connection", async (socket) => {
   });
 });
 
+// Test version
+app.get("/test", (req, res) => {
+  res.sendFile(__dirname + "/test/index.html");
+});
+
 // SPA
 app.get("*", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
@@ -112,4 +117,4 @@ server.listen(5000, () => {
 });
 
 // Info
-const version = "0.6.11";
+const version = "0.7.3";

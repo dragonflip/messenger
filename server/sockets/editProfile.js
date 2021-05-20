@@ -12,6 +12,6 @@ module.exports = (io, socket) => {
       }"`
     );
 
-    socket.emit("editProfile", { ok: true });
+    io.emit("editProfile", data);
   });
 };
