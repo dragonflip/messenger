@@ -102,7 +102,7 @@ io.on("connection", async (socket) => {
 });
 
 // Test version
-app.get("/test", (req, res) => {
+app.get("/test*", (req, res) => {
   res.sendFile(__dirname + "/test/index.html");
 });
 
@@ -117,4 +117,4 @@ server.listen(5000, () => {
 });
 
 // Info
-const version = "0.7.3";
+const version = "0.7.4";

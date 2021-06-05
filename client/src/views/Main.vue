@@ -283,29 +283,31 @@
         </v-card>
       </v-dialog>
 
-      <v-dialog
-        v-model="test_version_dialog"
-        max-width="450"
-        :fullscreen="$vuetify.breakpoint.mobile"
-      >
+      <v-dialog v-model="test_version_dialog" max-width="450">
         <v-card>
           <v-card-title class="headline">
-            Перейти на тестову версію?
+            <span :style="$vuetify.breakpoint.mobile ? 'font-size: 70%' : ''">
+              Перейти на тестову версію?
+            </span>
 
             <v-spacer></v-spacer>
 
-            <v-btn elevation="0" icon @click="search_dialog = !search_dialog">
+            <v-btn
+              elevation="0"
+              icon
+              @click="test_version_dialog = !test_version_dialog"
+            >
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
-          <v-card-subtitle>Про дану версію</v-card-subtitle>
-          <v-card-text>
-            <v-list>
-              <v-list-item v-ripple>1. Кастомний рендер інтерфейсу</v-list-item>
-              <v-list-item v-ripple>2. Швидке завантаження</v-list-item>
-              <v-list-item v-ripple>3. Плавність та 60 fps</v-list-item>
-            </v-list>
-          </v-card-text>
+          <v-card-subtitle>Головні фічі</v-card-subtitle>
+
+          <v-list>
+            <v-list-item v-ripple>1. Кастомний рендер інтерфейсу</v-list-item>
+            <v-list-item v-ripple>2. Швидке завантаження</v-list-item>
+            <v-list-item v-ripple>3. Плавність та 60 fps</v-list-item>
+          </v-list>
+
           <v-card-actions>
             <v-spacer></v-spacer>
 
