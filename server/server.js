@@ -51,6 +51,15 @@ io.on("connection", async (socket) => {
   require("./sockets/editProfile")(io, socket);
   require("./sockets/setOnlineStatus")(io, socket);
 
+
+  socket.on("offer",(data) => {
+    io.emit("offer",data)
+  })
+
+  socket.on("answer",(data) => {
+    io.emit("answer",data)
+  })
+
   if (
     socket.handshake.query.token != "null" &&
     socket.handshake.query.visibility != "false"
@@ -100,6 +109,8 @@ io.on("connection", async (socket) => {
     }
   });
 });
+
+
 
 // Test version
 app.get("/test*", (req, res) => {

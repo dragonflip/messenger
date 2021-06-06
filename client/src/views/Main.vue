@@ -283,6 +283,32 @@
         </v-card>
       </v-dialog>
 
+      <v-dialog
+        v-model="call_dialog"
+        max-width="450"
+        :fullscreen="$vuetify.breakpoint.mobile"
+      >
+        <v-card>
+          <v-card-title class="headline">
+            Дзвінок
+            <v-spacer></v-spacer>
+                
+
+            <v-btn elevation="0" icon @click="call_dialog = !call_dialog">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+
+          </v-card-title> 
+            <v-btn v-if="user_id == call_to_id" elevation="0" icon @click="acceptCall()">
+              <v-icon>mdi-phone</v-icon>
+            </v-btn>
+            <div id="video-chat-container" class="video-position" style="display: none">
+              <video id="local-video" autoplay="autoplay" muted="muted"></video>
+              <video id="remote-video" autoplay="autoplay"></video>
+            </div>
+        </v-card>
+      </v-dialog>
+
       <v-dialog v-model="test_version_dialog" max-width="450">
         <v-card>
           <v-card-title class="headline">
@@ -552,6 +578,10 @@
 
             <v-spacer></v-spacer>
 
+            <v-btn icon @click="call()">
+              <v-icon>mdi-phone</v-icon>
+            </v-btn>
+
             <v-btn elevation="0" icon>
               <v-icon>mdi-dots-vertical</v-icon>
             </v-btn>
@@ -731,6 +761,7 @@ export default {
       clicked: false,
       profile_dialog: false,
       search_dialog: false,
+      call_dialog: false,
       test_version_dialog: false,
       profile: {
         firstname: "",
@@ -752,12 +783,31 @@ export default {
       connecting: false,
       moment: moment,
       lastSeen: "",
+      peerConnection: null,
+      call_to_id: 0,
+      call_from_id: 0,
     };
   },
   methods: {
+    requestCall: async function () {
+      call_dialog = true;
+
+      this.call_to_id = this.chats[this.chat_id - 1].user_id;
+      this.call_from_id = this.user_id;
+
+      this.socket.emit("requestCall",{
+        from_id: this.call_from_id,
+        to_id: this.call_to_id,
+      })
+    },
+    acceptCall: async function () {
+      this.socket.emit("acceptCall",{
+        from_id: this.call_from_id,
+        to_id: this.call_to_id,
+      })
+    },
     logout: function () {
       localStorage.removeItem("token");
-
       this.loading = true;
       location = "/login";
       return;
@@ -963,6 +1013,73 @@ export default {
 
     document.addEventListener("visibilitychange", () => {
       this.isTabActive = document.visibilityState === "visible";
+    });
+
+    this.socket.on("call", async (data) => {
+      if(data.from_id === this.user_id){
+        this.call_dialog = true;
+
+        const configuration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
+        this.peerConnection = new RTCPeerConnection(configuration);
+
+        const offer = await this.peerConnection.createOffer();
+        await this.peerConnection.setLocalDescription(offer);
+
+        this.socket.emit("offer",{
+          to_id,
+          from_id,
+          offer, 
+        });
+      }
+    });
+
+
+    this.socket.on("offer",async (data) => {
+      if(data.to_id === this.user_id){
+        this.call_dialog = true;
+        const configuration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
+        this.peerConnection = new RTCPeerConnection(configuration);
+
+        this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+        const answer = await peerConnection.createAnswer();
+        await this.peerConnection.setLocalDescription(answer);
+
+        this.call_to_id = data.to_id;
+        this.call_from_id = data.from_id;
+
+        this.socket.emit("answer",{
+          to_id: data.to_id,
+          from_id: data.from_id,
+          answer,
+        })
+      }
+    });
+
+    this.socket.on("answer", async (data) => {
+      if(data.to_id === this.user_id){
+        const remoteDesc = new RTCSessionDescription(data.answer);
+        await this.peerConnection.setRemoteDescription(remoteDesc);
+      }
+    });
+
+    this.peerConnection.addEventListener('icecandidate', event => {
+      if (event.candidate) {
+        this.socket.emit("candidate", {
+          to_id: this.call_to_id,
+          from_id: this.call_from_id,
+          candidate: event.candidate,
+        })
+      }
+    });
+
+    this.socket.on("candidate", async(data) => {
+      if(data.candidate.iceCandidate) {
+        try {
+          await this.peerConnection.addIceCandidate(data.iceCandidate);
+        } catch (e) {
+          console.error('Error adding received ice candidate', e);
+        }
+      }
     });
 
     this.socket.on("version", (version) => {
@@ -1393,4 +1510,38 @@ export default {
   padding: 0 24px;
   user-select: none;
 }
+
+.centered {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.video-position {
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#video-chat-container {
+  width: 100%;
+  background-color: black;
+}
+
+#local-video {
+  position: absolute;
+  height: 30%;
+  width: 30%;
+  bottom: 0px;
+  left: 0px;
+}
+
+#remote-video {
+  height: 100%;
+  width: 100%;
+}
+
+
 </style>
