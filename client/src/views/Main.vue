@@ -58,6 +58,7 @@
             style="width: 128px; height: 128px; border-radius: 50%"
             :style="edit_profile ? 'filter: brightness(0.6)' : ''"
             class="d-flex mx-auto"
+            loading="lazy"
           />
 
           <v-btn
@@ -243,7 +244,7 @@
             type="text"
             v-model.trim="searchQuery"
             name="search"
-            label="Пошук за іменем чи поштою"
+            label="Пошук за іменем або поштою"
             autocomplete="off"
             hide-details="auto"
             class="mx-4"
@@ -264,7 +265,7 @@
                   </span>
                 </v-avatar>
                 <v-avatar size="50" v-else>
-                  <img :src="user.profile_photo" />
+                  <img :src="user.profile_photo" loading="lazy" />
                 </v-avatar>
 
                 <!-- <v-badge bordered bottom color="primary" dot></v-badge> -->
@@ -292,20 +293,27 @@
           <v-card-title class="headline">
             Дзвінок
             <v-spacer></v-spacer>
-                
 
             <v-btn elevation="0" icon @click="call_dialog = !call_dialog">
               <v-icon>mdi-close</v-icon>
             </v-btn>
-
-          </v-card-title> 
-            <v-btn v-if="user_id == call_to_id" elevation="0" icon @click="acceptCall()">
-              <v-icon>mdi-phone</v-icon>
-            </v-btn>
-            <div id="video-chat-container" class="video-position" style="display: none">
-              <video id="local-video" autoplay="autoplay" muted="muted"></video>
-              <video id="remote-video" autoplay="autoplay"></video>
-            </div>
+          </v-card-title>
+          <v-btn
+            v-if="user_id == call_to_id"
+            elevation="0"
+            icon
+            @click="acceptCall()"
+          >
+            <v-icon>mdi-phone</v-icon>
+          </v-btn>
+          <div
+            id="video-chat-container"
+            class="video-position"
+            style="display: none"
+          >
+            <video id="local-video" autoplay="autoplay" muted="muted"></video>
+            <video id="remote-video" autoplay="autoplay"></video>
+          </div>
         </v-card>
       </v-dialog>
 
@@ -452,7 +460,7 @@
                     </span>
                   </v-avatar>
                   <v-avatar size="55" v-else>
-                    <img :src="chat.profile_photo" />
+                    <img :src="chat.profile_photo" loading="lazy" />
                   </v-avatar>
 
                   <v-badge
@@ -544,7 +552,7 @@
               </span>
             </v-avatar>
             <v-avatar :size="$vuetify.breakpoint.mobile ? '45' : '50'" v-else>
-              <img :src="chats[chat_id - 1].profile_photo" />
+              <img :src="chats[chat_id - 1].profile_photo" loading="lazy" />
             </v-avatar>
 
             <h5
@@ -578,7 +586,7 @@
 
             <v-spacer></v-spacer>
 
-            <v-btn icon @click="call()">
+            <v-btn icon @click="requestCall()">
               <v-icon>mdi-phone</v-icon>
             </v-btn>
 
@@ -783,28 +791,27 @@ export default {
       connecting: false,
       moment: moment,
       lastSeen: "",
-      peerConnection: null,
       call_to_id: 0,
       call_from_id: 0,
     };
   },
   methods: {
     requestCall: async function () {
-      call_dialog = true;
+      this.call_dialog = true;
 
       this.call_to_id = this.chats[this.chat_id - 1].user_id;
       this.call_from_id = this.user_id;
 
-      this.socket.emit("requestCall",{
+      this.socket.emit("requestCall", {
         from_id: this.call_from_id,
         to_id: this.call_to_id,
-      })
+      });
     },
     acceptCall: async function () {
-      this.socket.emit("acceptCall",{
+      this.socket.emit("acceptCall", {
         from_id: this.call_from_id,
         to_id: this.call_to_id,
-      })
+      });
     },
     logout: function () {
       localStorage.removeItem("token");
@@ -1015,70 +1022,101 @@ export default {
       this.isTabActive = document.visibilityState === "visible";
     });
 
-    this.socket.on("call", async (data) => {
-      if(data.from_id === this.user_id){
+    // RTC peerConnection
+    const configuration = {
+      iceServers: [
+        {
+          urls: ["stun:stun.l.google.com:19302"],
+        },
+      ],
+    };
+    let peerConnection = new RTCPeerConnection(configuration);
+
+    this.socket.on("requestCall", (data) => {
+      if (data.to_id === this.user_id) {
+        this.call_to_id = data.to_id;
+        this.call_from_id = data.from_id;
+
         this.call_dialog = true;
+      }
+    });
 
-        const configuration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
-        this.peerConnection = new RTCPeerConnection(configuration);
+    this.socket.on("acceptCall", async (data) => {
+      if (data.from_id === this.user_id) {
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
 
-        const offer = await this.peerConnection.createOffer();
-        await this.peerConnection.setLocalDescription(offer);
-
-        this.socket.emit("offer",{
-          to_id,
-          from_id,
-          offer, 
+        this.socket.emit("offer", {
+          to_id: data.to_id,
+          from_id: data.from_id,
+          offer,
         });
       }
     });
 
-
-    this.socket.on("offer",async (data) => {
-      if(data.to_id === this.user_id){
+    this.socket.on("offer", async (data) => {
+      if (data.to_id === this.user_id) {
         this.call_dialog = true;
-        const configuration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
-        this.peerConnection = new RTCPeerConnection(configuration);
 
-        this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+        peerConnection.setRemoteDescription(
+          new RTCSessionDescription(data.offer)
+        );
+
         const answer = await peerConnection.createAnswer();
-        await this.peerConnection.setLocalDescription(answer);
+        await peerConnection.setLocalDescription(answer);
 
         this.call_to_id = data.to_id;
         this.call_from_id = data.from_id;
 
-        this.socket.emit("answer",{
+        this.socket.emit("answer", {
           to_id: data.to_id,
           from_id: data.from_id,
           answer,
-        })
+        });
+
+        console.log("offer");
+        console.log(peerConnection);
       }
     });
 
     this.socket.on("answer", async (data) => {
-      if(data.to_id === this.user_id){
-        const remoteDesc = new RTCSessionDescription(data.answer);
-        await this.peerConnection.setRemoteDescription(remoteDesc);
+      if (data.from_id === this.user_id) {
+        await peerConnection.setRemoteDescription(
+          new RTCSessionDescription(data.answer)
+        );
+
+        console.log("answer");
+        console.log(peerConnection);
       }
     });
 
-    this.peerConnection.addEventListener('icecandidate', event => {
+    peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
         this.socket.emit("candidate", {
           to_id: this.call_to_id,
           from_id: this.call_from_id,
           candidate: event.candidate,
-        })
+        });
+      }
+
+      console.log(event);
+    };
+
+    this.socket.on("candidate", async (data) => {
+      if (data.candidate.iceCandidate) {
+        try {
+          await peerConnection.addIceCandidate(data.iceCandidate);
+        } catch (e) {
+          console.error("Error adding received ice candidate", e);
+        }
       }
     });
 
-    this.socket.on("candidate", async(data) => {
-      if(data.candidate.iceCandidate) {
-        try {
-          await this.peerConnection.addIceCandidate(data.iceCandidate);
-        } catch (e) {
-          console.error('Error adding received ice candidate', e);
-        }
+    peerConnection.addEventListener("connectionstatechange", () => {
+      if (peerConnection.connectionState === "connected") {
+        alert("Connected");
+      } else {
+        alert("Ne Connected");
       }
     });
 
@@ -1453,40 +1491,23 @@ export default {
   background: rgba(254, 216, 31, 0.5);
   color: #fff;
   padding: 5px 12px;
-  border-radius: 15px;
   margin-top: 10px;
   align-self: flex-end;
+  border-radius: 1em 1em 0 1em;
 }
 
 .messages .to a {
   color: #fff;
 }
 
-/* .to:after { */
-/* content: ""; */
-/* border: 15px solid transparent; */
-/* border-left-color: #fed81f; */
-/* border-right: 0; */
-/* border-bottom: 0; */
-/* margin-right: -20px; */
-/* } */
-
 .messages .from {
   background: #333;
   color: #fff;
   padding: 5px 12px;
-  border-radius: 15px;
   margin-top: 10px;
   align-self: flex-start;
+  border-radius: 1em 1em 1em 0;
 }
-
-/* .from:before {
-  content: "";
-  border: 15px solid transparent;
-  border-right-color: #333;
-  border-left: 0;
-  margin-left: -20px;
-} */
 
 .messages .from a {
   color: #fff;
@@ -1542,6 +1563,4 @@ export default {
   height: 100%;
   width: 100%;
 }
-
-
 </style>

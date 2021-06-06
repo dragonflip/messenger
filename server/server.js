@@ -51,14 +51,40 @@ io.on("connection", async (socket) => {
   require("./sockets/editProfile")(io, socket);
   require("./sockets/setOnlineStatus")(io, socket);
 
+  socket.on("requestCall", (data) => {
+    io.emit("requestCall", data);
 
-  socket.on("offer",(data) => {
-    io.emit("offer",data)
-  })
+    console.log("requestCall");
+    console.log(data);
+  });
 
-  socket.on("answer",(data) => {
-    io.emit("answer",data)
-  })
+  socket.on("acceptCall", (data) => {
+    io.emit("acceptCall", data);
+
+    console.log("acceptCall");
+    console.log(data);
+  });
+
+  socket.on("offer", (data) => {
+    io.emit("offer", data);
+
+    console.log("offer");
+    console.log(data);
+  });
+
+  socket.on("answer", (data) => {
+    io.emit("answer", data);
+
+    console.log("answer");
+    console.log(data);
+  });
+
+  socket.on("candidate", (data) => {
+    io.emit("candidate", data);
+
+    console.log("candidate");
+    console.log(data);
+  });
 
   if (
     socket.handshake.query.token != "null" &&
@@ -109,8 +135,6 @@ io.on("connection", async (socket) => {
     }
   });
 });
-
-
 
 // Test version
 app.get("/test*", (req, res) => {
