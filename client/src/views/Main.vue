@@ -299,20 +299,16 @@
             </v-btn>
           </v-card-title>
           <v-btn
-            v-if="user_id == call_to_id"
+            v-if="call_to_id === user_id"
             elevation="0"
             icon
             @click="acceptCall()"
           >
             <v-icon>mdi-phone</v-icon>
           </v-btn>
-          <div
-            id="video-chat-container"
-            class="video-position"
-            style="display: none"
-          >
-            <video id="local-video" autoplay="autoplay" muted="muted"></video>
-            <video id="remote-video" autoplay="autoplay"></video>
+          <div v-if="call_from_id === user_id || call_to_id === user_id">
+            <video id="remote_video" autoplay></video>
+            <video id="local_video" autoplay muted></video>
           </div>
         </v-card>
       </v-dialog>
@@ -998,7 +994,7 @@ export default {
       localStorage.prev_chat = prev_chat + 1;
     },
   },
-  mounted() {
+  async mounted() {
     window.onresize = () => {
       if (this.chat_id > 0) {
         let scroll = document.getElementById("messages");
@@ -1043,6 +1039,23 @@ export default {
 
     this.socket.on("acceptCall", async (data) => {
       if (data.from_id === this.user_id) {
+        try {
+          let stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true,
+          });
+
+          // let stream = await navigator.mediaDevices.getDisplayMedia();
+
+          document.getElementById("local_video").srcObject = stream;
+
+          stream
+            .getTracks()
+            .forEach((track) => peerConnection.addTrack(track, stream));
+        } catch (error) {
+          console.log("Включи своє навідео");
+        }
+
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
 
@@ -1058,7 +1071,24 @@ export default {
       if (data.to_id === this.user_id) {
         this.call_dialog = true;
 
-        peerConnection.setRemoteDescription(
+        try {
+          let stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true,
+          });
+
+          // let stream = await navigator.mediaDevices.getDisplayMedia();
+
+          document.getElementById("local_video").srcObject = stream;
+
+          stream
+            .getTracks()
+            .forEach((track) => peerConnection.addTrack(track, stream));
+        } catch (error) {
+          console.log("Включи своє навідео");
+        }
+
+        await peerConnection.setRemoteDescription(
           new RTCSessionDescription(data.offer)
         );
 
@@ -1090,6 +1120,10 @@ export default {
       }
     });
 
+    peerConnection.ontrack = (event) => {
+      document.getElementById("remote_video").srcObject = event.streams[0];
+    };
+
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
         this.socket.emit("candidate", {
@@ -1097,28 +1131,30 @@ export default {
           from_id: this.call_from_id,
           candidate: event.candidate,
         });
-      }
 
-      console.log(event);
+        console.log(event);
+      }
     };
 
     this.socket.on("candidate", async (data) => {
       if (data.candidate.iceCandidate) {
         try {
           await peerConnection.addIceCandidate(data.iceCandidate);
+
+          console.log(data);
         } catch (e) {
           console.error("Error adding received ice candidate", e);
         }
       }
     });
 
-    peerConnection.addEventListener("connectionstatechange", () => {
+    peerConnection.onconnectionstatechange = () => {
       if (peerConnection.connectionState === "connected") {
-        alert("Connected");
+        console.log("Connected");
       } else {
-        alert("Ne Connected");
+        console.log("Ne Connected");
       }
-    });
+    };
 
     this.socket.on("version", (version) => {
       if (version !== this.version) {
@@ -1532,35 +1568,9 @@ export default {
   user-select: none;
 }
 
-.centered {
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.video-position {
-  position: absolute;
-  top: 35%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-#video-chat-container {
+#local_video,
+#remote_video {
   width: 100%;
-  background-color: black;
-}
-
-#local-video {
-  position: absolute;
-  height: 30%;
-  width: 30%;
-  bottom: 0px;
-  left: 0px;
-}
-
-#remote-video {
-  height: 100%;
-  width: 100%;
+  transform: scaleX(-1);
 }
 </style>

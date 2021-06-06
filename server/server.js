@@ -14,22 +14,6 @@ app.use("/uploads", express.static(__dirname + "/uploads"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
-// app.use("/api/sendCode", require("./routes/sendCode"));
-// app.use("/api/signIn", require("./routes/signIn"));
-// app.use("/api/signUp", require("./routes/signUp"));
-
-// app.use("/api/getChats", require("./routes/getChats"));
-// app.use("/api/getMessages", require("./routes/getMessages"));
-// app.use("/api/sendMessage", require("./routes/sendMessage"));
-// app.use("/api/deleteMessage", require("./routes/deleteMessage"));
-// app.use("/api/editMessage", require("./routes/editMessage"));
-
-// app.use("/api/getUserID", require("./routes/getUserID"));
-// app.use("/api/getUsers", require("./routes/getUsers"));
-// app.use("/api/getProfile", require("./routes/getProfile"));
-// app.use("/api/editProfile", require("./routes/editProfile"));
-
 let users = 0;
 
 // Sockets
