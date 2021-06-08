@@ -137,4 +137,4 @@ server.listen(5000, () => {
 });
 
 // Info
-const version = "0.8.5";
+const version = "0.9.9";

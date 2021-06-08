@@ -17,7 +17,6 @@
       ></v-progress-linear>
 
       <v-dialog
-        
         v-model="profile_dialog"
         max-width="450"
         :fullscreen="$vuetify.breakpoint.mobile"
@@ -83,14 +82,12 @@
           />
 
           <h5 class="text-center mt-2">
-            {{userProfile.firstname }} {{userProfile.lastname }}
+            {{ userProfile.firstname }} {{ userProfile.lastname }}
             <h6 class="mt-1">
               <span class="primary--text" v-if="!userProfile.was_online"
                 >Онлайн</span
               >
-              <span class="white--text" v-else
-                >В мережі {{ userProfile.was_online }}</span
-              >
+              <span class="white--text" v-else>В мережі {{ lastSeen }}</span>
             </h6>
           </h5>
 
@@ -118,13 +115,13 @@
                 <v-list-item-content>
                   <v-list-item-title>
                     <span v-if="!edit_profile">
-                      {{userProfile.firstname }} {{ userProfile.lastname }}
+                      {{ userProfile.firstname }} {{ userProfile.lastname }}
                     </span>
 
                     <div class="d-flex py-1" v-else>
                       <v-text-field
                         type="text"
-                        v-model="userProfile.firstname"
+                        v-model="profile.firstname"
                         name="firstname"
                         label="Ім'я"
                         :autofocus="!$vuetify.breakpoint.mobile"
@@ -135,7 +132,7 @@
                       ></v-text-field>
                       <v-text-field
                         type="text"
-                        v-model="userProfile.lastname"
+                        v-model="profile.lastname"
                         name="lastname"
                         label="Прізвище"
                         maxlength="20"
@@ -290,58 +287,69 @@
         v-model="call_dialog"
         max-width="450"
         :fullscreen="$vuetify.breakpoint.mobile"
+        persistent
       >
         <v-card>
-          <v-card-title class="headline">
-            Дзвінок
+          <v-card-title class="headline">Дзвінок</v-card-title>
 
-            <v-spacer></v-spacer>
-
-            <v-btn elevation="0" icon @click="call_dialog = !call_dialog">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-card-title>
-
-          <div v-if="chat_id > 0">
+          <div v-if="call_to_id > 0">
             <v-avatar
               color="accent"
               size="128"
               class="d-flex mx-auto"
               style="font-size: 200%"
-              v-if="!chats[chat_id - 1].profile_photo"
+              v-if="!users[call_user_index].profile_photo"
             >
               <span class="white--text">
-                {{ chats[chat_id - 1].firstname[0] }}
-                {{ chats[chat_id - 1].lastname[0] }}
+                {{ users[call_user_index].firstname[0] }}
+                {{ users[call_user_index].lastname[0] }}
               </span>
             </v-avatar>
             <img
               v-else
-              :src="chats[chat_id - 1].profile_photo"
+              :src="users[call_user_index].profile_photo"
               style="width: 128px; height: 128px; border-radius: 50%"
               class="d-flex mx-auto"
               loading="lazy"
             />
 
             <h5 class="text-center mt-2">
-              {{ chats[chat_id - 1].firstname }}
-              {{ chats[chat_id - 1].lastname }}
+              {{ users[call_user_index].firstname }}
+              {{ users[call_user_index].lastname }}
 
-              <h6 class="text-muted">Дзвоню...</h6>
+              <h6 class="text-muted" v-if="call_from_id === user_id">
+                Телефоную...
+              </h6>
+              <h6 class="text-muted" v-else>Телефонує Вам...</h6>
             </h5>
-          </div>
 
-          <v-btn
-            v-if="call_to_id === user_id"
-            elevation="0"
-            icon
-            @click="acceptCall()"
-          >
-            <v-icon>mdi-phone</v-icon>
-          </v-btn>
-          <div v-if="call_from_id === user_id || call_to_id === user_id">
-            <video id="remote_video" autoplay></video>
-            <video id="local_video" autoplay muted></video>
+            <div v-if="user_in_call">
+              <video id="remote_video" autoplay></video>
+              <video id="local_video" autoplay muted></video>
+            </div>
+
+            <div class="d-flex justify-content-center">
+              <v-btn
+                v-if="call_to_id === user_id && !user_in_call"
+                elevation="0"
+                @click="acceptCall(true)"
+                color="green"
+                fab
+                class="my-5 mx-2"
+              >
+                <v-icon>mdi-phone</v-icon>
+              </v-btn>
+
+              <v-btn
+                elevation="0"
+                @click="acceptCall(false)"
+                color="red"
+                fab
+                class="my-5 mx-2"
+              >
+                <v-icon>mdi-phone-hangup</v-icon>
+              </v-btn>
+            </div>
           </div>
         </v-card>
       </v-dialog>
@@ -551,8 +559,8 @@
           !$vuetify.breakpoint.mobile
         "
       >
-        <div class="nav_bar d-flex">
-          <v-menu left absolute min-width="70" >
+        <div class="nav_bar d-flex" v-if="chat_id > 0">
+          <v-menu left absolute min-width="70">
             <template v-slot:activator="{ on }">
               <v-app-bar
                 flat
@@ -568,7 +576,20 @@
                 >
                   <v-icon>mdi-arrow-left</v-icon>
                 </v-btn>
-                <div class="d-flex" @click="profileUser(users[users.findIndex((user) => user.id === chats[chat_id - 1].user_id)].id)" v-if="chat_id > 0">
+                <div
+                  v-ripple
+                  class="d-flex align-items-center p-2 w-100"
+                  style="cursor: pointer"
+                  @click="
+                    profileUser(
+                      users[
+                        users.findIndex(
+                          (user) => user.id === chats[chat_id - 1].user_id
+                        )
+                      ].id
+                    )
+                  "
+                >
                   <v-avatar
                     color="accent"
                     :size="$vuetify.breakpoint.mobile ? '45' : '50'"
@@ -583,9 +604,12 @@
                     :size="$vuetify.breakpoint.mobile ? '45' : '50'"
                     v-else
                   >
-                    <img :src="chats[chat_id - 1].profile_photo" loading="lazy" />
+                    <img
+                      :src="chats[chat_id - 1].profile_photo"
+                      loading="lazy"
+                    />
                   </v-avatar>
-  
+
                   <h5
                     class="ml-2 mb-0 d-flex flex-column"
                     :style="$vuetify.breakpoint.mobile ? 'font-size: 100%' : ''"
@@ -835,24 +859,31 @@ export default {
       call_to_id: 0,
       call_from_id: 0,
       userProfile: null,
+      call_user_index: 0,
+      user_in_call: false,
     };
   },
   methods: {
-    requestCall: async function () {
+    requestCall: function () {
       this.call_dialog = true;
 
       this.call_to_id = this.chats[this.chat_id - 1].user_id;
       this.call_from_id = this.user_id;
+
+      this.call_user_index = this.users.findIndex(
+        (user) => user.id === this.call_to_id
+      );
 
       this.socket.emit("requestCall", {
         from_id: this.call_from_id,
         to_id: this.call_to_id,
       });
     },
-    acceptCall: async function () {
+    acceptCall: function (accept) {
       this.socket.emit("acceptCall", {
         from_id: this.call_from_id,
         to_id: this.call_to_id,
+        accept,
       });
     },
     logout: function () {
@@ -880,13 +911,6 @@ export default {
         });
 
         this.messageTextBox = "";
-
-        this.$nextTick(() => {
-          let scroll = document.getElementById("messages");
-          scroll.scrollTop = scroll.scrollHeight;
-        });
-
-        this.notifTimeout = true;
       }
     },
     selectUser: function (id) {
@@ -901,12 +925,13 @@ export default {
       this.users = this.users.filter((user) => user.id !== id);
     },
     profileUser: function (id) {
-      if(id != this.user_id){
-        this.userProfile = this.users[this.users.findIndex((user) => user.id == id)]
+      if (id != this.user_id) {
+        this.userProfile =
+          this.users[this.users.findIndex((user) => user.id == id)];
       } else {
         this.userProfile = this.profile;
       }
-      console.log(this.userProfile);
+
       this.profile_dialog = true;
     },
     editProfile: async function () {
@@ -1083,16 +1108,27 @@ export default {
     const configuration = {
       iceServers: [
         {
-          urls: ["stun:stun.l.google.com:19302"],
+          urls: [
+            "stun:stun.l.google.com:19302",
+            "stun:stun1.l.google.com:19302",
+            "stun:stun2.l.google.com:19302",
+            "stun:stun3.l.google.com:19302",
+            "stun:stun4.l.google.com:19302",
+          ],
         },
       ],
     };
     let peerConnection = new RTCPeerConnection(configuration);
+    let stream;
 
     this.socket.on("requestCall", (data) => {
       if (data.to_id === this.user_id) {
         this.call_to_id = data.to_id;
         this.call_from_id = data.from_id;
+
+        this.call_user_index = this.users.findIndex(
+          (user) => user.id === this.call_from_id
+        );
 
         this.call_dialog = true;
       }
@@ -1100,8 +1136,20 @@ export default {
 
     this.socket.on("acceptCall", async (data) => {
       if (data.from_id === this.user_id || data.to_id === this.user_id) {
+        if (!data.accept) {
+          this.call_dialog = false;
+          this.user_in_call = false;
+
+          if (stream) stream.getTracks().forEach((track) => track.stop());
+          // peerConnection.removeTrack();
+
+          return;
+        }
+
         try {
-          let stream = await navigator.mediaDevices.getUserMedia({
+          this.user_in_call = true;
+
+          stream = await navigator.mediaDevices.getUserMedia({
             video: true,
             audio: true,
           });
@@ -1112,9 +1160,10 @@ export default {
           // });
           document.getElementById("local_video").srcObject = stream;
 
-          stream
-            .getTracks()
-            .forEach((track) => peerConnection.addTrack(track, stream));
+          stream.getTracks().forEach((track) => {
+            peerConnection.addTrack(track, stream);
+            console.log(track);
+          });
 
           if (data.from_id === this.user_id) {
             const offer = await peerConnection.createOffer();
@@ -1187,6 +1236,7 @@ export default {
     };
 
     peerConnection.ontrack = (event) => {
+      console.log("TRACKKKK", event);
       document.getElementById("remote_video").srcObject = event.streams[0];
     };
 
@@ -1321,6 +1371,9 @@ export default {
           this.messages.push(data);
 
           this.$nextTick(() => {
+            let scroll = document.getElementById("messages");
+            scroll.scrollTop = scroll.scrollHeight;
+
             if (data.from_id != this.user_id && this.isTabActive) {
               console.log(`Read message after send: ${this.isTabActive}`);
               this.socket.emit("readMessage", {
@@ -1339,9 +1392,6 @@ export default {
 
                 console.log("load image scroll");
               };
-            } else {
-              let scroll = document.getElementById("messages");
-              scroll.scrollTop = scroll.scrollHeight;
             }
           });
         } else {
@@ -1349,29 +1399,32 @@ export default {
         }
 
         // Update chat
-        let chat = {
-          ...this.chats.filter(
-            (chat) =>
-              chat.user_id === data.from_id || chat.user_id === data.to_id
-          )[0],
-          ...data,
-        };
+        // if (this.chat_id > 1) {
+        //   let prev_chat = this.chats.findIndex(
+        //     (chat) => chat.user_id === this.chat_user_id
+        //   );
+        //   this.chat_id = prev_chat + 1;
+        // }
 
-        if (data.from_id !== this.user_id) {
-          chat.unread_count++;
-        }
+        this.socket.emit("getChats", { token: localStorage.token });
+        // let chat = {
+        //   ...this.chats.filter(
+        //     (chat) =>
+        //       chat.user_id === data.from_id || chat.user_id === data.to_id
+        //   )[0],
+        //   ...data,
+        // };
 
-        chat.has_read = 0;
+        // if (data.from_id !== this.user_id) {
+        //   chat.unread_count++;
+        // }
 
-        this.chats = this.chats.filter(
-          (user) => user.user_id !== data.from_id && user.user_id !== data.to_id
-        );
-        this.chats.unshift(chat);
+        // chat.has_read = 0;
 
-        let prev_chat = this.chats.findIndex(
-          (chat) => chat.user_id === this.chat_user_id
-        );
-        this.chat_id = prev_chat + 1;
+        // this.chats = this.chats.filter(
+        //   (user) => user.user_id !== data.from_id && user.user_id !== data.to_id
+        // );
+        // this.chats.unshift(chat);
       }
     });
 
@@ -1390,8 +1443,6 @@ export default {
         }
       }
     });
-
-    this.loading = false;
   },
   watch: {
     chat_id: function (value) {
@@ -1458,6 +1509,10 @@ export default {
       this.logout();
     }
 
+    if (location.host !== "daki.kplsp.com.ua") {
+      location = "https://daki.kplsp.com.ua";
+    }
+
     this.$vuetify.theme.dark = true;
     this.$vuetify.theme.themes.dark.primary = "#fed81f";
     this.$vuetify.theme.themes.dark.accent = "#333";
@@ -1500,15 +1555,17 @@ export default {
         this.search_dialog = true;
       }
 
-      let prev_chat = this.chats.findIndex(
-        (chat) => chat.user_id === this.chat_user_id
-      );
+      if (this.chat_id > 1) {
+        let prev_chat = this.chats.findIndex(
+          (chat) => chat.user_id === this.chat_user_id
+        );
 
-      if (localStorage.prev_chat > 0) {
-        this.chat_id = +localStorage.prev_chat;
-        localStorage.prev_chat = 0;
-      } else {
-        this.chat_id = prev_chat + 1;
+        if (localStorage.prev_chat > 0) {
+          this.chat_id = +localStorage.prev_chat;
+          localStorage.prev_chat = 0;
+        } else {
+          this.chat_id = prev_chat + 1;
+        }
       }
     });
 
@@ -1611,6 +1668,6 @@ export default {
 #local_video,
 #remote_video {
   width: 100%;
-  /* transform: scaleX(-1); */
+  transform: scaleX(-1);
 }
 </style>
