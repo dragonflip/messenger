@@ -17,15 +17,16 @@
       ></v-progress-linear>
 
       <v-dialog
+        
         v-model="profile_dialog"
         max-width="450"
         :fullscreen="$vuetify.breakpoint.mobile"
         @click:outside="edit_profile = false"
         @keydown.esc="edit_profile = false"
       >
-        <v-card>
+        <v-card v-if="userProfile">
           <v-card-title class="headline">
-            Мій профіль
+            Профіль
 
             <v-spacer></v-spacer>
 
@@ -46,15 +47,15 @@
             size="128"
             class="d-flex mx-auto"
             style="font-size: 200%"
-            v-if="!profile.profile_photo"
+            v-if="!userProfile.profile_photo"
           >
             <span class="white--text" v-if="!edit_profile">
-              {{ profile.firstname[0] }} {{ profile.lastname[0] }}
+              {{ userProfile.firstname[0] }} {{ userProfile.lastname[0] }}
             </span>
           </v-avatar>
           <img
             v-else
-            :src="profile.profile_photo"
+            :src="userProfile.profile_photo"
             style="width: 128px; height: 128px; border-radius: 50%"
             :style="edit_profile ? 'filter: brightness(0.6)' : ''"
             class="d-flex mx-auto"
@@ -82,18 +83,19 @@
           />
 
           <h5 class="text-center mt-2">
-            {{ profile.firstname }} {{ profile.lastname }}
+            {{userProfile.firstname }} {{userProfile.lastname }}
             <h6 class="mt-1">
-              <span class="primary--text" v-if="!profile.was_online"
+              <span class="primary--text" v-if="!userProfile.was_online"
                 >Онлайн</span
               >
               <span class="white--text" v-else
-                >В мережі {{ profile.was_online }}</span
+                >В мережі {{ userProfile.was_online }}</span
               >
             </h6>
           </h5>
 
           <v-btn
+            v-if="user_id == userProfile.id"
             :color="!edit_profile ? 'primary' : 'transparent'"
             elevation="0"
             rounded
@@ -116,13 +118,13 @@
                 <v-list-item-content>
                   <v-list-item-title>
                     <span v-if="!edit_profile">
-                      {{ profile.firstname }} {{ profile.lastname }}
+                      {{userProfile.firstname }} {{ userProfile.lastname }}
                     </span>
 
                     <div class="d-flex py-1" v-else>
                       <v-text-field
                         type="text"
-                        v-model="profile.firstname"
+                        v-model="userProfile.firstname"
                         name="firstname"
                         label="Ім'я"
                         :autofocus="!$vuetify.breakpoint.mobile"
@@ -133,7 +135,7 @@
                       ></v-text-field>
                       <v-text-field
                         type="text"
-                        v-model="profile.lastname"
+                        v-model="userProfile.lastname"
                         name="lastname"
                         label="Прізвище"
                         maxlength="20"
@@ -156,7 +158,7 @@
 
                 <v-list-item-content>
                   <v-list-item-title>
-                    <span v-if="!edit_profile">{{ profile.email }}</span>
+                    <span v-if="!edit_profile">{{ userProfile.email }}</span>
 
                     <div class="d-flex py-1" v-else>
                       <v-text-field
@@ -185,7 +187,7 @@
                 <v-list-item-content>
                   <v-list-item-title>
                     <span v-if="!edit_profile">
-                      <span v-if="profile.bio">{{ profile.bio }}</span>
+                      <span v-if="userProfile.bio">{{ userProfile.bio }}</span>
                       <span v-else>Про себе</span>
                     </span>
 
@@ -202,7 +204,7 @@
                     </div>
                   </v-list-item-title>
                   <v-list-item-subtitle v-if="!edit_profile">
-                    <span v-if="profile.bio">Про себе</span>
+                    <span v-if="userProfile.bio">Про себе</span>
                     <span v-else>Кілька слів про себе</span>
                   </v-list-item-subtitle>
                 </v-list-item-content>
@@ -430,7 +432,7 @@
               </v-app-bar>
             </template>
             <v-list>
-              <v-list-item @click="profile_dialog = true">
+              <v-list-item @click="profileUser(user_id)">
                 <v-icon class="pr-2">mdi-account-outline</v-icon>
                 Профіль
               </v-list-item>
@@ -549,8 +551,8 @@
           !$vuetify.breakpoint.mobile
         "
       >
-        <div class="nav_bar d-flex" v-if="chat_id > 0">
-          <v-menu left absolute min-width="70">
+        <div class="nav_bar d-flex">
+          <v-menu left absolute min-width="70" >
             <template v-slot:activator="{ on }">
               <v-app-bar
                 flat
@@ -566,52 +568,53 @@
                 >
                   <v-icon>mdi-arrow-left</v-icon>
                 </v-btn>
-
-                <v-avatar
-                  color="accent"
-                  :size="$vuetify.breakpoint.mobile ? '45' : '50'"
-                  v-if="!chats[chat_id - 1].profile_photo"
-                >
-                  <span class="white--text">
-                    {{ chats[chat_id - 1].firstname[0] }}
-                    {{ chats[chat_id - 1].lastname[0] }}
-                  </span>
-                </v-avatar>
-                <v-avatar
-                  :size="$vuetify.breakpoint.mobile ? '45' : '50'"
-                  v-else
-                >
-                  <img :src="chats[chat_id - 1].profile_photo" loading="lazy" />
-                </v-avatar>
-
-                <h5
-                  class="ml-2 mb-0 d-flex flex-column"
-                  :style="$vuetify.breakpoint.mobile ? 'font-size: 100%' : ''"
-                >
-                  {{ chats[chat_id - 1].firstname }}
-                  {{ chats[chat_id - 1].lastname }}
-                  <span
-                    class="primary--text"
-                    :style="
-                      $vuetify.breakpoint.mobile
-                        ? 'font-size: 70%'
-                        : 'font-size: 60%'
-                    "
-                    v-if="chats[chat_id - 1].online"
-                    >Онлайн</span
+                <div class="d-flex" @click="profileUser(users[users.findIndex((user) => user.id === chats[chat_id - 1].user_id)].id)" v-if="chat_id > 0">
+                  <v-avatar
+                    color="accent"
+                    :size="$vuetify.breakpoint.mobile ? '45' : '50'"
+                    v-if="!chats[chat_id - 1].profile_photo"
                   >
-                  <span
-                    class="grey--text"
-                    :style="
-                      $vuetify.breakpoint.mobile
-                        ? 'font-size: 70%'
-                        : 'font-size: 60%'
-                    "
+                    <span class="white--text">
+                      {{ chats[chat_id - 1].firstname[0] }}
+                      {{ chats[chat_id - 1].lastname[0] }}
+                    </span>
+                  </v-avatar>
+                  <v-avatar
+                    :size="$vuetify.breakpoint.mobile ? '45' : '50'"
                     v-else
                   >
-                    В мережі {{ lastSeen }}
-                  </span>
-                </h5>
+                    <img :src="chats[chat_id - 1].profile_photo" loading="lazy" />
+                  </v-avatar>
+  
+                  <h5
+                    class="ml-2 mb-0 d-flex flex-column"
+                    :style="$vuetify.breakpoint.mobile ? 'font-size: 100%' : ''"
+                  >
+                    {{ chats[chat_id - 1].firstname }}
+                    {{ chats[chat_id - 1].lastname }}
+                    <span
+                      class="primary--text"
+                      :style="
+                        $vuetify.breakpoint.mobile
+                          ? 'font-size: 70%'
+                          : 'font-size: 60%'
+                      "
+                      v-if="chats[chat_id - 1].online"
+                      >Онлайн</span
+                    >
+                    <span
+                      class="grey--text"
+                      :style="
+                        $vuetify.breakpoint.mobile
+                          ? 'font-size: 70%'
+                          : 'font-size: 60%'
+                      "
+                      v-else
+                    >
+                      В мережі {{ lastSeen }}
+                    </span>
+                  </h5>
+                </div>
 
                 <v-spacer></v-spacer>
 
@@ -831,6 +834,7 @@ export default {
       lastSeen: "",
       call_to_id: 0,
       call_from_id: 0,
+      userProfile: null,
     };
   },
   methods: {
@@ -895,6 +899,15 @@ export default {
       this.chat_id = 1;
       this.search_dialog = false;
       this.users = this.users.filter((user) => user.id !== id);
+    },
+    profileUser: function (id) {
+      if(id != this.user_id){
+        this.userProfile = this.users[this.users.findIndex((user) => user.id == id)]
+      } else {
+        this.userProfile = this.profile;
+      }
+      console.log(this.userProfile);
+      this.profile_dialog = true;
     },
     editProfile: async function () {
       if (!this.profile.firstname.trim()) {
