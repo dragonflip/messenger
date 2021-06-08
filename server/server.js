@@ -28,6 +28,7 @@ io.on("connection", async (socket) => {
   require("./sockets/deleteMessage")(io, socket);
   require("./sockets/editMessage")(io, socket);
   require("./sockets/readMessage")(io, socket);
+  require("./sockets/deleteChat")(io, socket);
 
   require("./sockets/getUserID")(io, socket);
   require("./sockets/getUsers")(io, socket);
@@ -136,4 +137,4 @@ server.listen(5000, () => {
 });
 
 // Info
-const version = "0.7.4";
+const version = "0.8.5";

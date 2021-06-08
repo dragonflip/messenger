@@ -292,12 +292,43 @@
         <v-card>
           <v-card-title class="headline">
             Дзвінок
+
             <v-spacer></v-spacer>
 
             <v-btn elevation="0" icon @click="call_dialog = !call_dialog">
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
+
+          <div v-if="chat_id > 0">
+            <v-avatar
+              color="accent"
+              size="128"
+              class="d-flex mx-auto"
+              style="font-size: 200%"
+              v-if="!chats[chat_id - 1].profile_photo"
+            >
+              <span class="white--text">
+                {{ chats[chat_id - 1].firstname[0] }}
+                {{ chats[chat_id - 1].lastname[0] }}
+              </span>
+            </v-avatar>
+            <img
+              v-else
+              :src="chats[chat_id - 1].profile_photo"
+              style="width: 128px; height: 128px; border-radius: 50%"
+              class="d-flex mx-auto"
+              loading="lazy"
+            />
+
+            <h5 class="text-center mt-2">
+              {{ chats[chat_id - 1].firstname }}
+              {{ chats[chat_id - 1].lastname }}
+
+              <h6 class="text-muted">Дзвоню...</h6>
+            </h5>
+          </div>
+
           <v-btn
             v-if="call_to_id === user_id"
             elevation="0"
@@ -381,10 +412,7 @@
                 color="transparent"
                 :short="$vuetify.breakpoint.mobile"
               >
-                <v-app-bar-nav-icon
-                  @click="menu = !menu"
-                  v-on="on"
-                ></v-app-bar-nav-icon>
+                <v-app-bar-nav-icon v-on="on"></v-app-bar-nav-icon>
                 <v-toolbar-title>
                   <span v-if="connecting">
                     <v-progress-circular
@@ -420,8 +448,8 @@
               </v-list-item>
               <v-list-item @click="logout()">
                 <v-icon color="red" class="pr-2">mdi-logout</v-icon>
-                <span class="red--text"> Вийти</span></v-list-item
-              >
+                <span class="red--text">Вийти</span>
+              </v-list-item>
               <v-divider class="my-2"></v-divider>
               <v-list-item>
                 <v-icon class="pr-2">mdi-information-outline</v-icon>
@@ -522,74 +550,89 @@
         "
       >
         <div class="nav_bar d-flex" v-if="chat_id > 0">
-          <v-app-bar
-            flat
-            color="transparent"
-            :short="$vuetify.breakpoint.mobile"
-          >
-            <v-btn
-              elevation="0"
-              icon
-              v-if="$vuetify.breakpoint.mobile"
-              @click="chat_id = 0"
-              class="mr-1"
-            >
-              <v-icon>mdi-arrow-left</v-icon>
-            </v-btn>
-
-            <v-avatar
-              color="accent"
-              :size="$vuetify.breakpoint.mobile ? '45' : '50'"
-              v-if="!chats[chat_id - 1].profile_photo"
-            >
-              <span class="white--text">
-                {{ chats[chat_id - 1].firstname[0] }}
-                {{ chats[chat_id - 1].lastname[0] }}
-              </span>
-            </v-avatar>
-            <v-avatar :size="$vuetify.breakpoint.mobile ? '45' : '50'" v-else>
-              <img :src="chats[chat_id - 1].profile_photo" loading="lazy" />
-            </v-avatar>
-
-            <h5
-              class="ml-2 mb-0 d-flex flex-column"
-              :style="$vuetify.breakpoint.mobile ? 'font-size: 100%' : ''"
-            >
-              {{ chats[chat_id - 1].firstname }}
-              {{ chats[chat_id - 1].lastname }}
-              <span
-                class="primary--text"
-                :style="
-                  $vuetify.breakpoint.mobile
-                    ? 'font-size: 70%'
-                    : 'font-size: 60%'
-                "
-                v-if="chats[chat_id - 1].online"
-                >Онлайн</span
+          <v-menu left absolute min-width="70">
+            <template v-slot:activator="{ on }">
+              <v-app-bar
+                flat
+                color="transparent"
+                :short="$vuetify.breakpoint.mobile"
               >
-              <span
-                class="grey--text"
-                :style="
-                  $vuetify.breakpoint.mobile
-                    ? 'font-size: 70%'
-                    : 'font-size: 60%'
-                "
-                v-else
-              >
-                В мережі {{ lastSeen }}
-              </span>
-            </h5>
+                <v-btn
+                  elevation="0"
+                  icon
+                  v-if="$vuetify.breakpoint.mobile"
+                  @click="chat_id = 0"
+                  class="mr-1"
+                >
+                  <v-icon>mdi-arrow-left</v-icon>
+                </v-btn>
 
-            <v-spacer></v-spacer>
+                <v-avatar
+                  color="accent"
+                  :size="$vuetify.breakpoint.mobile ? '45' : '50'"
+                  v-if="!chats[chat_id - 1].profile_photo"
+                >
+                  <span class="white--text">
+                    {{ chats[chat_id - 1].firstname[0] }}
+                    {{ chats[chat_id - 1].lastname[0] }}
+                  </span>
+                </v-avatar>
+                <v-avatar
+                  :size="$vuetify.breakpoint.mobile ? '45' : '50'"
+                  v-else
+                >
+                  <img :src="chats[chat_id - 1].profile_photo" loading="lazy" />
+                </v-avatar>
 
-            <v-btn icon @click="requestCall()">
-              <v-icon>mdi-phone</v-icon>
-            </v-btn>
+                <h5
+                  class="ml-2 mb-0 d-flex flex-column"
+                  :style="$vuetify.breakpoint.mobile ? 'font-size: 100%' : ''"
+                >
+                  {{ chats[chat_id - 1].firstname }}
+                  {{ chats[chat_id - 1].lastname }}
+                  <span
+                    class="primary--text"
+                    :style="
+                      $vuetify.breakpoint.mobile
+                        ? 'font-size: 70%'
+                        : 'font-size: 60%'
+                    "
+                    v-if="chats[chat_id - 1].online"
+                    >Онлайн</span
+                  >
+                  <span
+                    class="grey--text"
+                    :style="
+                      $vuetify.breakpoint.mobile
+                        ? 'font-size: 70%'
+                        : 'font-size: 60%'
+                    "
+                    v-else
+                  >
+                    В мережі {{ lastSeen }}
+                  </span>
+                </h5>
 
-            <v-btn elevation="0" icon>
-              <v-icon>mdi-dots-vertical</v-icon>
-            </v-btn>
-          </v-app-bar>
+                <v-spacer></v-spacer>
+
+                <v-btn icon @click="requestCall()">
+                  <v-icon>mdi-phone</v-icon>
+                </v-btn>
+
+                <v-btn elevation="0" icon v-on="on">
+                  <v-icon>mdi-dots-vertical</v-icon>
+                </v-btn>
+              </v-app-bar>
+            </template>
+            <v-list>
+              <v-list-item @click="deleteChat()">
+                <v-list-item-title class="red--text">
+                  <v-icon class="red--text pr-2">mdi-delete-outline</v-icon>
+                  Видалити чат
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </div>
 
         <div
@@ -774,7 +817,6 @@ export default {
       user_id: null,
       edit_profile: false,
       messageTextBox: "",
-      to_id: 0,
       notifTimeout: false,
       version: localStorage.version,
       messageMenu: false,
@@ -916,8 +958,14 @@ export default {
         `#message_${this.selected_message_id} .message_text`
       ).style.userSelect = "none";
     },
-    deleteMessage: async function () {
+    deleteMessage: function () {
       this.socket.emit("deleteMessage", { id: this.selected_message_id });
+    },
+    deleteChat: function () {
+      this.socket.emit("deleteChat", {
+        from_id: this.user_id,
+        to_id: this.chat_user_id,
+      });
     },
     profilePhotoUpload: function (e) {
       const img = new Image();
@@ -1038,56 +1086,41 @@ export default {
     });
 
     this.socket.on("acceptCall", async (data) => {
-      if (data.from_id === this.user_id) {
+      if (data.from_id === this.user_id || data.to_id === this.user_id) {
         try {
           let stream = await navigator.mediaDevices.getUserMedia({
             video: true,
             audio: true,
           });
 
-          // let stream = await navigator.mediaDevices.getDisplayMedia();
-
+          // let stream = await navigator.mediaDevices.getDisplayMedia({
+          //   video: true,
+          //   audio: true,
+          // });
           document.getElementById("local_video").srcObject = stream;
 
           stream
             .getTracks()
             .forEach((track) => peerConnection.addTrack(track, stream));
+
+          if (data.from_id === this.user_id) {
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+
+            this.socket.emit("offer", {
+              to_id: data.to_id,
+              from_id: data.from_id,
+              offer,
+            });
+          }
         } catch (error) {
-          console.log("Включи своє навідео");
+          console.log(error);
         }
-
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-
-        this.socket.emit("offer", {
-          to_id: data.to_id,
-          from_id: data.from_id,
-          offer,
-        });
       }
     });
 
     this.socket.on("offer", async (data) => {
       if (data.to_id === this.user_id) {
-        this.call_dialog = true;
-
-        try {
-          let stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: true,
-          });
-
-          // let stream = await navigator.mediaDevices.getDisplayMedia();
-
-          document.getElementById("local_video").srcObject = stream;
-
-          stream
-            .getTracks()
-            .forEach((track) => peerConnection.addTrack(track, stream));
-        } catch (error) {
-          console.log("Включи своє навідео");
-        }
-
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(data.offer)
         );
@@ -1120,10 +1153,6 @@ export default {
       }
     });
 
-    peerConnection.ontrack = (event) => {
-      document.getElementById("remote_video").srcObject = event.streams[0];
-    };
-
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
         this.socket.emit("candidate", {
@@ -1131,29 +1160,21 @@ export default {
           from_id: this.call_from_id,
           candidate: event.candidate,
         });
-
-        console.log(event);
       }
     };
 
     this.socket.on("candidate", async (data) => {
-      if (data.candidate.iceCandidate) {
-        try {
-          await peerConnection.addIceCandidate(data.iceCandidate);
-
-          console.log(data);
-        } catch (e) {
-          console.error("Error adding received ice candidate", e);
-        }
-      }
+      try {
+        await peerConnection.addIceCandidate(data.candidate);
+      } catch {}
     });
 
     peerConnection.onconnectionstatechange = () => {
-      if (peerConnection.connectionState === "connected") {
-        console.log("Connected");
-      } else {
-        console.log("Ne Connected");
-      }
+      console.log(peerConnection.connectionState);
+    };
+
+    peerConnection.ontrack = (event) => {
+      document.getElementById("remote_video").srcObject = event.streams[0];
     };
 
     this.socket.on("version", (version) => {
@@ -1238,6 +1259,14 @@ export default {
       }
 
       this.socket.emit("getChats", { token: localStorage.token });
+    });
+
+    this.socket.on("deleteChat", (data) => {
+      if (data.from_id == this.user_id || data.to_id == this.user_id) {
+        this.socket.emit("getChats", { token: localStorage.token });
+
+        this.chat_id = 0;
+      }
     });
 
     this.socket.on("readMessage", (data) => {
@@ -1497,7 +1526,6 @@ export default {
 }
 
 .chat .photo {
-  /* width: 60px; */
   margin-right: 10px;
 }
 
@@ -1506,7 +1534,6 @@ export default {
 }
 
 .chat .name {
-  /* width: 100px; */
   font-weight: 700;
 }
 
@@ -1571,6 +1598,6 @@ export default {
 #local_video,
 #remote_video {
   width: 100%;
-  transform: scaleX(-1);
+  /* transform: scaleX(-1); */
 }
 </style>
