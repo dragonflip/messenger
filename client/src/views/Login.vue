@@ -234,6 +234,10 @@ export default {
       return;
     }
 
+    if (location.host !== "daki.kplsp.com.ua") {
+      location = "https://daki.kplsp.com.ua";
+    }
+
     this.$vuetify.theme.dark = true;
     this.$vuetify.theme.themes.dark.primary = "#fed81f";
     this.$vuetify.theme.themes.light.accent = "#c08fff";

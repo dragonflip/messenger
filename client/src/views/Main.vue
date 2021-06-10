@@ -87,7 +87,7 @@
               <span class="primary--text" v-if="!userProfile.was_online"
                 >Онлайн</span
               >
-              <span class="white--text" v-else>В мережі {{ lastSeen }}</span>
+              <span class="text-muted" v-else>В мережі {{ lastSeen }}</span>
             </h6>
           </h5>
 
@@ -293,51 +293,54 @@
           <v-card-title class="headline">Дзвінок</v-card-title>
 
           <div v-if="call_to_id > 0">
-            <v-avatar
-              color="accent"
-              size="128"
-              class="d-flex mx-auto"
-              style="font-size: 200%"
-              v-if="!users[call_user_index].profile_photo"
-            >
-              <span class="white--text">
-                {{ users[call_user_index].firstname[0] }}
-                {{ users[call_user_index].lastname[0] }}
-              </span>
-            </v-avatar>
-            <img
-              v-else
-              :src="users[call_user_index].profile_photo"
-              style="width: 128px; height: 128px; border-radius: 50%"
-              class="d-flex mx-auto"
-              loading="lazy"
-            />
+            <div v-if="!user_in_call">
+              <v-avatar
+                color="accent"
+                size="128"
+                class="d-flex mx-auto"
+                style="font-size: 200%"
+                v-if="!users[call_user_index].profile_photo"
+              >
+                <span class="white--text">
+                  {{ users[call_user_index].firstname[0] }}
+                  {{ users[call_user_index].lastname[0] }}
+                </span>
+              </v-avatar>
+              <img
+                v-else
+                :src="users[call_user_index].profile_photo"
+                style="width: 128px; height: 128px; border-radius: 50%"
+                class="d-flex mx-auto"
+                loading="lazy"
+              />
 
-            <h5 class="text-center mt-2">
-              {{ users[call_user_index].firstname }}
-              {{ users[call_user_index].lastname }}
+              <h5 class="text-center mt-2">
+                {{ users[call_user_index].firstname }}
+                {{ users[call_user_index].lastname }}
 
-              <h6 class="text-muted" v-if="call_from_id === user_id">
-                Телефоную...
-              </h6>
-              <h6 class="text-muted" v-else>Телефонує Вам...</h6>
-            </h5>
+                <h6 class="text-muted" v-if="call_from_id === user_id">
+                  Телефоную...
+                </h6>
+                <h6 class="text-muted" v-else>Телефонує Вам...</h6>
+              </h5>
+            </div>
 
-            <div v-if="user_in_call">
+            <div v-else>
               <video id="remote_video" autoplay></video>
               <video id="local_video" autoplay muted></video>
             </div>
 
             <div class="d-flex justify-content-center">
               <v-btn
-                v-if="call_to_id === user_id && !user_in_call"
+                v-if="user_in_call"
                 elevation="0"
-                @click="acceptCall(true)"
-                color="green"
                 fab
                 class="my-5 mx-2"
+                :color="!camera ? 'white' : ''"
+                @click="callAction('camera')"
               >
-                <v-icon>mdi-phone</v-icon>
+                <v-icon v-if="!camera" color="black">mdi-camera-off</v-icon>
+                <v-icon v-else>mdi-camera</v-icon>
               </v-btn>
 
               <v-btn
@@ -348,6 +351,31 @@
                 class="my-5 mx-2"
               >
                 <v-icon>mdi-phone-hangup</v-icon>
+              </v-btn>
+
+              <v-btn
+                v-if="user_in_call"
+                elevation="0"
+                fab
+                class="my-5 mx-2"
+                :color="!microphone ? 'white' : ''"
+                @click="callAction('microphone')"
+              >
+                <v-icon v-if="!microphone" color="black"
+                  >mdi-microphone-off</v-icon
+                >
+                <v-icon v-else>mdi-microphone</v-icon>
+              </v-btn>
+
+              <v-btn
+                v-if="call_to_id === user_id && !user_in_call"
+                elevation="0"
+                @click="acceptCall(true)"
+                color="green"
+                fab
+                class="my-5 mx-2"
+              >
+                <v-icon>mdi-phone</v-icon>
               </v-btn>
             </div>
           </div>
@@ -578,7 +606,7 @@
                 </v-btn>
                 <div
                   v-ripple
-                  class="d-flex align-items-center p-2 w-100"
+                  class="d-flex align-items-center py-2 w-100"
                   style="cursor: pointer"
                   @click="
                     profileUser(
@@ -731,6 +759,7 @@
                   <img
                     :src="'/uploads/' + message.attachment"
                     style="width: 100%; border-radius: 20px"
+                    loading="lazy"
                   />
                 </a>
                 <span v-else>{{ message.message }}</span>
@@ -821,6 +850,8 @@
 import moment from "moment";
 moment.locale("uk");
 
+let peerConnection, stream, sender;
+
 export default {
   name: "Main",
   data() {
@@ -861,6 +892,8 @@ export default {
       userProfile: null,
       call_user_index: 0,
       user_in_call: false,
+      camera: true,
+      microphone: true,
     };
   },
   methods: {
@@ -885,6 +918,34 @@ export default {
         to_id: this.call_to_id,
         accept,
       });
+    },
+    callAction: async function (action) {
+      if (action == "camera") {
+        this.camera = !this.camera;
+
+        stream.getTracks().forEach((track) => {
+          if (track.kind == "video") {
+            track.enabled = this.camera;
+
+            const action = !this.camera ? "muteVideo" : "unmuteVideo";
+
+            this.socket.emit("callAction", {
+              from_id: this.call_from_id,
+              to_id: this.call_to_id,
+              action_from: this.user_id,
+              action,
+            });
+          }
+        });
+      } else {
+        this.microphone = !this.microphone;
+
+        stream.getTracks().forEach((track) => {
+          if (track.kind == "audio") {
+            track.enabled = this.microphone;
+          }
+        });
+      }
     },
     logout: function () {
       localStorage.removeItem("token");
@@ -1118,8 +1179,7 @@ export default {
         },
       ],
     };
-    let peerConnection = new RTCPeerConnection(configuration);
-    let stream;
+    peerConnection = new RTCPeerConnection(configuration);
 
     this.socket.on("requestCall", (data) => {
       if (data.to_id === this.user_id) {
@@ -1148,6 +1208,8 @@ export default {
 
         try {
           this.user_in_call = true;
+          this.camera = true;
+          this.microphone = true;
 
           stream = await navigator.mediaDevices.getUserMedia({
             video: true,
@@ -1161,7 +1223,7 @@ export default {
           document.getElementById("local_video").srcObject = stream;
 
           stream.getTracks().forEach((track) => {
-            peerConnection.addTrack(track, stream);
+            sender = peerConnection.addTrack(track, stream);
             console.log(track);
           });
 
@@ -1236,9 +1298,28 @@ export default {
     };
 
     peerConnection.ontrack = (event) => {
-      console.log("TRACKKKK", event);
       document.getElementById("remote_video").srcObject = event.streams[0];
     };
+
+    this.socket.on("callAction", (data) => {
+      if (data.from_id == this.user_id || data.to_id == this.user_id) {
+        if (data.action == "muteVideo") {
+          if (data.action_from == this.user_id) {
+            document.getElementById("local_video").style.display = "none";
+          } else {
+            document.getElementById("remote_video").style.display = "none";
+          }
+        }
+
+        if (data.action == "unmuteVideo") {
+          if (data.action_from == this.user_id) {
+            document.getElementById("local_video").style.display = "block";
+          } else {
+            document.getElementById("remote_video").style.display = "block";
+          }
+        }
+      }
+    });
 
     this.socket.on("version", (version) => {
       if (version !== this.version) {
@@ -1299,6 +1380,9 @@ export default {
       }
 
       this.$nextTick(() => {
+        let scroll = document.getElementById("messages");
+        scroll.scrollTop = scroll.scrollHeight;
+
         let images = document.querySelectorAll(".message_text img");
         let last_img = images[images.length - 1];
 
@@ -1307,9 +1391,6 @@ export default {
             let scroll = document.getElementById("messages");
             scroll.scrollTop = scroll.scrollHeight;
           };
-        } else {
-          let scroll = document.getElementById("messages");
-          scroll.scrollTop = scroll.scrollHeight;
         }
       });
     });

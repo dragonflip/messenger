@@ -34,6 +34,8 @@ io.on("connection", async (socket) => {
   require("./sockets/getUsers")(io, socket);
   require("./sockets/getProfile")(io, socket);
   require("./sockets/editProfile")(io, socket);
+
+  // TODO: FIX BUG
   require("./sockets/setOnlineStatus")(io, socket);
 
   socket.on("requestCall", (data) => {
@@ -68,6 +70,13 @@ io.on("connection", async (socket) => {
     io.emit("candidate", data);
 
     console.log("candidate");
+    console.log(data);
+  });
+
+  socket.on("callAction", (data) => {
+    io.emit("callAction", data);
+
+    console.log("callAction");
     console.log(data);
   });
 
@@ -137,4 +146,4 @@ server.listen(5000, () => {
 });
 
 // Info
-const version = "0.9.9";
+const version = "0.9.16";
