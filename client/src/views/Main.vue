@@ -284,6 +284,14 @@
       </v-dialog>
 
       <v-dialog
+        v-model="photo_dialog"
+        max-width="600"
+        :fullscreen="$vuetify.breakpoint.mobile"
+      >
+        <img :src="photo" loading="lazy" />
+      </v-dialog>
+
+      <v-dialog
         v-model="call_dialog"
         max-width="450"
         :fullscreen="$vuetify.breakpoint.mobile"
@@ -753,8 +761,7 @@
                 >
                 <a
                   v-else-if="message.attachment"
-                  :href="'/uploads/' + message.attachment"
-                  @click="savePrevChat()"
+                  @click="zoomPhoto('/uploads/' + message.attachment)"
                 >
                   <img
                     :src="'/uploads/' + message.attachment"
@@ -864,6 +871,7 @@ export default {
       menu: false,
       loading: true,
       clicked: false,
+      photo_dialog: false,
       profile_dialog: false,
       search_dialog: false,
       call_dialog: false,
@@ -894,9 +902,15 @@ export default {
       user_in_call: false,
       camera: true,
       microphone: true,
+      photo: "",
     };
   },
   methods: {
+    zoomPhoto: function (photo) {
+      this.photo = photo;
+      this.photo_dialog = true;
+      console.log(photo);
+    },
     requestCall: function () {
       this.call_dialog = true;
 
@@ -1591,7 +1605,7 @@ export default {
     }
 
     if (location.host !== "daki.kplsp.com.ua") {
-      location = "https://daki.kplsp.com.ua";
+       location = "https://daki.kplsp.com.ua";
     }
 
     this.$vuetify.theme.dark = true;
