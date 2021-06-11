@@ -2,11 +2,19 @@ const db = require("../config/db");
 const moment = require("moment");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 module.exports = (io, socket) => {
   socket.on("sendMessage", async (data) => {
     const CurrentDate = moment().unix();
-    const message = db.esc(data.message);
+
+    const cipher = crypto.createCipheriv(
+      "aes128",
+      process.env.CIPHER_KEY,
+      process.env.CIPHER_IV
+    );
+    const message =
+      cipher.update(db.esc(data.message), "utf-8", "hex") + cipher.final("hex");
 
     data.sent_date = moment.unix(moment().unix()).format("HH:mm");
 

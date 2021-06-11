@@ -1,5 +1,6 @@
 const db = require("../config/db");
 const moment = require("moment");
+const crypto = require("crypto");
 
 module.exports = (io, socket) => {
   socket.on("getChats", async (data) => {
@@ -26,6 +27,18 @@ module.exports = (io, socket) => {
       } else {
         chat.sent_date = moment.unix(chat.sent_date).format("HH:mm");
       }
+
+      const decipher = crypto.createDecipheriv(
+        "aes128",
+        process.env.CIPHER_KEY,
+        process.env.CIPHER_IV
+      );
+
+      try {
+        chat.message =
+          decipher.update(chat.message, "hex", "utf-8") +
+          decipher.final("utf-8");
+      } catch {}
 
       if (!chat.was_online) {
         chat.online = true;

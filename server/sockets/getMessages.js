@@ -1,5 +1,6 @@
 const db = require("../config/db");
 const moment = require("moment");
+const crypto = require("crypto");
 
 module.exports = (io, socket) => {
   socket.on("getMessages", async (data) => {
@@ -12,6 +13,18 @@ module.exports = (io, socket) => {
 
     messages.forEach((message) => {
       message.sent_date = moment.unix(message.sent_date).format("HH:mm");
+
+      const decipher = crypto.createDecipheriv(
+        "aes128",
+        process.env.CIPHER_KEY,
+        process.env.CIPHER_IV
+      );
+
+      try {
+        message.message =
+          decipher.update(message.message, "hex", "utf-8") +
+          decipher.final("utf-8");
+      } catch {}
     });
 
     socket.emit("getMessages", messages);

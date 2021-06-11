@@ -283,17 +283,17 @@
         </v-card>
       </v-dialog>
 
-      <v-dialog
-        v-model="photo_dialog"
-        max-width="600"
-        :fullscreen="$vuetify.breakpoint.mobile"
-      >
-        <img :src="photo" loading="lazy" />
+      <v-dialog v-model="photo_dialog" :max-width="$vuetify.breakpoint.height">
+        <img
+          :src="photo"
+          loading="lazy"
+          style="height: 90vh; object-fit: contain"
+        />
       </v-dialog>
 
       <v-dialog
         v-model="call_dialog"
-        max-width="450"
+        :max-width="user_in_call ? $vuetify.breakpoint.height : '450'"
         :fullscreen="$vuetify.breakpoint.mobile"
         persistent
       >
@@ -301,7 +301,7 @@
           <v-card-title class="headline">Дзвінок</v-card-title>
 
           <div v-if="call_to_id > 0">
-            <div v-if="!user_in_call">
+            <div v-if="!user_in_call || (!remote_camera && !camera)">
               <v-avatar
                 color="accent"
                 size="128"
@@ -326,17 +326,26 @@
                 {{ users[call_user_index].firstname }}
                 {{ users[call_user_index].lastname }}
 
-                <h6 class="text-muted" v-if="call_from_id === user_id">
-                  Телефоную...
-                </h6>
-                <h6 class="text-muted" v-else>Телефонує Вам...</h6>
+                <span v-if="!user_in_call">
+                  <h6 class="text-muted" v-if="call_from_id === user_id">
+                    Телефоную...
+                  </h6>
+                  <h6 class="text-muted" v-else>Телефонує Вам...</h6>
+                </span>
               </h5>
             </div>
 
-            <div v-else>
-              <video id="remote_video" autoplay></video>
-              <video id="local_video" autoplay muted></video>
-            </div>
+            <video
+              id="remote_video"
+              v-show="user_in_call && remote_camera"
+              autoplay
+            ></video>
+            <video
+              id="local_video"
+              v-show="user_in_call && camera"
+              autoplay
+              muted
+            ></video>
 
             <div class="d-flex justify-content-center">
               <v-btn
@@ -344,21 +353,22 @@
                 elevation="0"
                 fab
                 class="my-5 mx-2"
-                :color="!camera ? 'white' : ''"
-                @click="callAction('camera')"
+                title="Поширити екран"
               >
-                <v-icon v-if="!camera" color="black">mdi-camera-off</v-icon>
-                <v-icon v-else>mdi-camera</v-icon>
+                <v-icon>mdi-monitor-share</v-icon>
               </v-btn>
 
               <v-btn
+                v-if="user_in_call"
                 elevation="0"
-                @click="acceptCall(false)"
-                color="red"
                 fab
                 class="my-5 mx-2"
+                :color="!camera ? 'white' : ''"
+                @click="callAction('camera')"
+                :title="microphone ? 'Вимкнути камеру' : 'Увімкнути камеру'"
               >
-                <v-icon>mdi-phone-hangup</v-icon>
+                <v-icon v-if="!camera" color="black">mdi-camera-off</v-icon>
+                <v-icon v-else>mdi-camera</v-icon>
               </v-btn>
 
               <v-btn
@@ -368,11 +378,23 @@
                 class="my-5 mx-2"
                 :color="!microphone ? 'white' : ''"
                 @click="callAction('microphone')"
+                :title="microphone ? 'Вимкнути мікрофон' : 'Увімкнути мікрофон'"
               >
                 <v-icon v-if="!microphone" color="black"
                   >mdi-microphone-off</v-icon
                 >
                 <v-icon v-else>mdi-microphone</v-icon>
+              </v-btn>
+
+              <v-btn
+                elevation="0"
+                @click="acceptCall(false)"
+                color="red"
+                fab
+                class="my-5 mx-2"
+                title="Завершити дзвінок"
+              >
+                <v-icon>mdi-phone-hangup</v-icon>
               </v-btn>
 
               <v-btn
@@ -843,7 +865,7 @@
         </div>
 
         <h3 v-else class="text-muted align-self-center my-auto">
-          <span v-if="!chats.length">
+          <span v-if="search_dialog">
             Знайдіть людей та почніть спілкування
           </span>
           <span v-else>Оберіть чат для спілкування</span>
@@ -857,7 +879,7 @@
 import moment from "moment";
 moment.locale("uk");
 
-let peerConnection, stream, sender;
+let peerConnection, stream;
 
 export default {
   name: "Main",
@@ -901,6 +923,7 @@ export default {
       call_user_index: 0,
       user_in_call: false,
       camera: true,
+      remote_camera: true,
       microphone: true,
       photo: "",
     };
@@ -1237,7 +1260,7 @@ export default {
           document.getElementById("local_video").srcObject = stream;
 
           stream.getTracks().forEach((track) => {
-            sender = peerConnection.addTrack(track, stream);
+            peerConnection.addTrack(track, stream);
             console.log(track);
           });
 
@@ -1322,6 +1345,7 @@ export default {
             document.getElementById("local_video").style.display = "none";
           } else {
             document.getElementById("remote_video").style.display = "none";
+            this.remote_camera = false;
           }
         }
 
@@ -1330,6 +1354,7 @@ export default {
             document.getElementById("local_video").style.display = "block";
           } else {
             document.getElementById("remote_video").style.display = "block";
+            this.remote_camera = true;
           }
         }
       }
@@ -1429,7 +1454,7 @@ export default {
 
     this.socket.on("readMessage", (data) => {
       if (data.from_id == this.user_id || data.to_id == this.user_id) {
-        if (this.chat_id > 0) {
+        if (this.chat_id > 0 && this.messages) {
           this.messages.forEach((message) => {
             if (
               message.from_id == data.from_id &&
@@ -1605,7 +1630,7 @@ export default {
     }
 
     if (location.host !== "daki.kplsp.com.ua") {
-       location = "https://daki.kplsp.com.ua";
+      location = "https://daki.kplsp.com.ua";
     }
 
     this.$vuetify.theme.dark = true;
@@ -1764,5 +1789,17 @@ export default {
 #remote_video {
   width: 100%;
   transform: scaleX(-1);
+}
+
+#local_video {
+  position: absolute;
+  bottom: 0;
+  right: 0px;
+  width: 200px;
+  border-radius: 15px;
+}
+
+#remote_video {
+  margin-bottom: -103px;
 }
 </style>

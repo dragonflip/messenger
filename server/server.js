@@ -35,7 +35,7 @@ io.on("connection", async (socket) => {
   require("./sockets/getProfile")(io, socket);
   require("./sockets/editProfile")(io, socket);
 
-  // TODO: FIX BUG
+  // TODO: Fix infinity online after exit on phone
   require("./sockets/setOnlineStatus")(io, socket);
 
   socket.on("requestCall", (data) => {
@@ -146,4 +146,4 @@ server.listen(5000, () => {
 });
 
 // Info
-const version = "0.9.16";
+const version = "0.11.4";
