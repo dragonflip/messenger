@@ -298,10 +298,12 @@
         persistent
       >
         <v-card>
-          <v-card-title class="headline">Дзвінок</v-card-title>
+          <v-card-title class="headline" v-if="!user_in_call || !remote_camera"
+            >Дзвінок</v-card-title
+          >
 
           <div v-if="call_to_id > 0">
-            <div v-if="!user_in_call || (!remote_camera && !camera)">
+            <div v-if="!user_in_call || !remote_camera">
               <v-avatar
                 color="accent"
                 size="128"
@@ -1020,7 +1022,7 @@ export default {
 
       this.chat_id = 1;
       this.search_dialog = false;
-      this.users = this.users.filter((user) => user.id !== id);
+      // this.users = this.users.filter((user) => user.id !== id);
     },
     profileUser: function (id) {
       if (id != this.user_id) {

@@ -1,3 +1,7 @@
+// Info
+const version = "0.11.6";
+
+// Modules
 const express = require("express");
 const app = express();
 const http = require("http");
@@ -144,6 +148,3 @@ app.get("*", (req, res) => {
 server.listen(5000, () => {
   console.log("Server running on http://localhost:5000");
 });
-
-// Info
-const version = "0.11.4";
