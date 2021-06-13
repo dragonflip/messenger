@@ -820,7 +820,7 @@
             <form class="d-flex w-100" @submit.prevent="send_message()">
               <v-textarea
                 v-model="messageTextBox"
-                label="Повідомлення"
+                :label="nowUpdate ? 'Редагування повідомлення' : 'Повідомлення'"
                 hide-details="auto"
                 autocomplete="off"
                 class="ml-5"
@@ -831,6 +831,7 @@
                 @keydown="send_message"
               ></v-textarea>
               <v-btn
+                v-if = "!nowUpdate"
                 icon
                 style="
                   position: absolute;
@@ -851,6 +852,20 @@
                 v-show="false"
                 @change="messageFileUpload"
               />
+              <v-btn
+                v-if = "nowUpdate"
+                @click="
+                  messageTextBox = '';
+                  nowUpdate = false;
+                "
+                x-large
+                elevation="0"
+                color="transparent"
+                class="ml-1 align-self-end"
+                style="height: 55px; width: 60px; min-width: auto"
+              >
+                <v-icon color="primary">mdi-close-circle-outline</v-icon>
+              </v-btn>
 
               <v-btn
                 type="submit"
@@ -928,6 +943,7 @@ export default {
       remote_camera: true,
       microphone: true,
       photo: "",
+      nowUpdate: false,
     };
   },
   methods: {
@@ -976,8 +992,16 @@ export default {
             });
           }
         });
-      } else {
+      } else if (action == "camera") {
         this.microphone = !this.microphone;
+
+        stream.getTracks().forEach((track) => {
+          if (track.kind == "audio") {
+            track.enabled = this.microphone;
+          }
+        });
+      } else {
+        this.screenShare = !this.screenShare;
 
         stream.getTracks().forEach((track) => {
           if (track.kind == "audio") {
@@ -1004,11 +1028,22 @@ export default {
         this.messageTextBox = this.messageTextBox.replace(/^\s*[\r\n]/gm, "");
         document.getElementById("messageTextBox").focus();
 
-        this.socket.emit("sendMessage", {
-          from_id: this.user_id,
-          to_id: this.chats[this.chat_id - 1].user_id,
-          message: this.messageTextBox,
-        });
+        if (this.nowUpdate) {
+          this.nowUpdate = false;
+
+          this.socket.emit("editMessage", {
+            id: this.selected_message_id,
+            to_id: this.chat_user_id,
+            from_id: this.user_id,
+            message: this.messageTextBox,
+          });
+        } else {
+          this.socket.emit("sendMessage", {
+            from_id: this.user_id,
+            to_id: this.chats[this.chat_id - 1].user_id,
+            message: this.messageTextBox,
+          });
+        }
 
         this.messageTextBox = "";
       }
@@ -1098,6 +1133,12 @@ export default {
     },
     deleteMessage: function () {
       this.socket.emit("deleteMessage", { id: this.selected_message_id });
+    },
+    editMessage : function() {
+      this.nowUpdate = false;
+      this.messageTextBox = this.messages[this.messages.findIndex((message) => message.id == this.selected_message_id)].message;
+      document.getElementById("messageTextBox").focus();
+      this.nowUpdate = true;
     },
     deleteChat: function () {
       this.socket.emit("deleteChat", {
@@ -1240,6 +1281,7 @@ export default {
           this.user_in_call = false;
 
           if (stream) stream.getTracks().forEach((track) => track.stop());
+
           // peerConnection.removeTrack();
 
           return;
@@ -1255,9 +1297,9 @@ export default {
             audio: true,
           });
 
-          // let stream = await navigator.mediaDevices.getDisplayMedia({
-          //   video: true,
-          //   audio: true,
+          // stream = await navigator.mediaDevices.getDisplayMedia({
+          //    video: true,
+          //    audio: true,
           // });
           document.getElementById("local_video").srcObject = stream;
 
@@ -1369,6 +1411,17 @@ export default {
       }
     });
 
+    this.socket.on("editMessage", (data) => {
+      if (data.to_id === this.user_id || data.from_id === this.user_id) {
+        this.socket.emit("getMessages", {
+          token: localStorage.token,
+          to_id: this.chat_user_id,
+        });
+        this.socket.emit("getChats", {
+          token: localStorage.token,
+        });
+      }
+    });
     this.socket.on("usersOnline", (usersOnline) => {
       this.usersOnline = usersOnline;
     });
