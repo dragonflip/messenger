@@ -12,9 +12,9 @@ module.exports = (io, socket) => {
       cipher.update(db.esc(data.message), "utf-8", "hex") + cipher.final("hex");
 
     await db.query(
-      `UPDATE messages SET message = '${message}' WHERE id = '${data.id}'`
+      `UPDATE messages SET message = '${message}', edited = 1 WHERE id = '${data.id}'`
     );
 
-    io.emit("editMessage",data)
+    io.emit("editMessage", data);
   });
 };

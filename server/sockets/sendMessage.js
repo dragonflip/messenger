@@ -16,7 +16,7 @@ module.exports = (io, socket) => {
     const message =
       cipher.update(db.esc(data.message), "utf-8", "hex") + cipher.final("hex");
 
-    data.sent_date = moment.unix(moment().unix()).format("HH:mm");
+    data.sent_date = CurrentDate;
 
     if (!data.attachment) {
       let [res] = await db.query(

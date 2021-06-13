@@ -740,19 +740,19 @@
               offset-y
             >
               <v-list>
-                <v-list-item @click="copyMessage">
+                <v-list-item @click="copyMessage()">
                   <v-list-item-title>
                     <v-icon class="pr-2">mdi-content-copy</v-icon>
                     Копіювати
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="editMessage">
+                <v-list-item @click="editMessage()">
                   <v-list-item-title>
                     <v-icon class="pr-2">mdi-pencil-outline</v-icon>
                     Редагувати
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="deleteMessage">
+                <v-list-item @click="deleteMessage()">
                   <v-list-item-title class="red--text">
                     <v-icon class="red--text pr-2">mdi-delete-outline</v-icon>
                     Видалити
@@ -762,65 +762,90 @@
             </v-menu>
 
             <div
-              class="d-flex"
+              class="d-flex flex-column"
               v-for="(message, i) in messages"
               :key="i"
-              :class="message.from_id === user_id ? 'to' : 'from'"
-              style="max-width: 90%"
-              @contextmenu="messageContext($event, message.from_id, message.id)"
-              :id="'message_' + message.id"
             >
-              <div
-                class="message_text"
-                :style="!$vuetify.breakpoint.mobile ? 'user-select: text' : ''"
+              <v-chip
+                class="align-self-center my-5"
+                style="width: auto"
+                v-if="message.dateChip"
               >
-                <span
-                  v-if="
-                    message.message.slice(0, 7) == 'http://' ||
-                    message.message.slice(0, 8) == 'https://'
+                {{ moment.unix(message.sent_date).format("DD.MM.YYYY") }}
+              </v-chip>
+
+              <div
+                class="d-flex"
+                :class="message.from_id === user_id ? 'to' : 'from'"
+                style="max-width: 90%"
+                @contextmenu="
+                  messageContext($event, message.from_id, message.id)
+                "
+                :id="'message_' + message.id"
+              >
+                <div
+                  class="message_text"
+                  :style="
+                    !$vuetify.breakpoint.mobile ? 'user-select: text' : ''
                   "
-                  ><a :href="message.message" target="_blank">{{
-                    message.message
-                  }}</a></span
                 >
-                <a
-                  v-else-if="message.attachment"
-                  @click="zoomPhoto('/uploads/' + message.attachment)"
-                >
-                  <img
-                    :src="'/uploads/' + message.attachment"
-                    style="width: 100%; border-radius: 20px"
-                    loading="lazy"
-                  />
-                </a>
-                <span v-else>{{ message.message }}</span>
+                  <span
+                    v-if="
+                      message.message.slice(0, 7) == 'http://' ||
+                      message.message.slice(0, 8) == 'https://'
+                    "
+                    ><a :href="message.message" target="_blank">{{
+                      message.message
+                    }}</a></span
+                  >
+                  <a
+                    v-else-if="message.attachment"
+                    @click="zoomPhoto('/uploads/' + message.attachment)"
+                  >
+                    <img
+                      :src="'/uploads/' + message.attachment"
+                      style="width: 100%; border-radius: 20px"
+                    />
+                  </a>
+                  <span v-else>{{ message.message }}</span>
+                </div>
+                <div class="message_time align-self-end ml-1">
+                  <v-icon
+                    v-if="message.edited"
+                    color="rgba(255, 255, 255, 0.7)"
+                    class="ml-1"
+                    style="font-size: 15px"
+                    >mdi-pencil</v-icon
+                  >
+
+                  {{ moment.unix(message.sent_date).format("HH:mm") }}
+                </div>
+                <span v-if="message.from_id === user_id">
+                  <v-icon
+                    v-if="message.has_read"
+                    color="rgba(255, 255, 255, 0.7)"
+                    class="ml-1"
+                    style="font-size: 22px"
+                    >mdi-check-all</v-icon
+                  >
+                  <v-icon
+                    v-else
+                    color="rgba(255, 255, 255, 0.7)"
+                    class="ml-1"
+                    style="font-size: 22px"
+                    >mdi-check</v-icon
+                  >
+                </span>
               </div>
-              <div class="message_time align-self-end ml-1">
-                {{ message.sent_date }}
-              </div>
-              <span v-if="message.from_id === user_id">
-                <v-icon
-                  color="rgba(255, 255, 255, 0.7)"
-                  class="ml-1"
-                  style="font-size: 22px"
-                  v-if="message.has_read"
-                  >mdi-check-all</v-icon
-                >
-                <v-icon
-                  color="rgba(255, 255, 255, 0.7)"
-                  class="ml-1"
-                  style="font-size: 22px"
-                  v-else
-                  >mdi-check</v-icon
-                >
-              </span>
             </div>
           </div>
           <div class="send_message d-flex">
             <form class="d-flex w-100" @submit.prevent="send_message()">
               <v-textarea
                 v-model="messageTextBox"
-                :label="nowUpdate ? 'Редагування повідомлення' : 'Повідомлення'"
+                :label="
+                  messageEditMode ? 'Редагування повідомлення' : 'Повідомлення'
+                "
                 hide-details="auto"
                 autocomplete="off"
                 class="ml-5"
@@ -831,7 +856,7 @@
                 @keydown="send_message"
               ></v-textarea>
               <v-btn
-                v-if = "!nowUpdate"
+                v-if="!messageEditMode"
                 icon
                 style="
                   position: absolute;
@@ -853,10 +878,10 @@
                 @change="messageFileUpload"
               />
               <v-btn
-                v-if = "nowUpdate"
+                v-if="messageEditMode"
                 @click="
                   messageTextBox = '';
-                  nowUpdate = false;
+                  messageEditMode = false;
                 "
                 x-large
                 elevation="0"
@@ -943,7 +968,7 @@ export default {
       remote_camera: true,
       microphone: true,
       photo: "",
-      nowUpdate: false,
+      messageEditMode: false,
     };
   },
   methods: {
@@ -992,7 +1017,7 @@ export default {
             });
           }
         });
-      } else if (action == "camera") {
+      } else if (action == "microphone") {
         this.microphone = !this.microphone;
 
         stream.getTracks().forEach((track) => {
@@ -1000,14 +1025,14 @@ export default {
             track.enabled = this.microphone;
           }
         });
-      } else {
-        this.screenShare = !this.screenShare;
-
-        stream.getTracks().forEach((track) => {
-          if (track.kind == "audio") {
-            track.enabled = this.microphone;
-          }
-        });
+      } else if (action == "screen") {
+        // TODO
+        // this.screenShare = !this.screenShare;
+        // stream.getTracks().forEach((track) => {
+        //   if (track.kind == "audio") {
+        //     track.enabled = this.microphone;
+        //   }
+        // });
       }
     },
     logout: function () {
@@ -1028,8 +1053,8 @@ export default {
         this.messageTextBox = this.messageTextBox.replace(/^\s*[\r\n]/gm, "");
         document.getElementById("messageTextBox").focus();
 
-        if (this.nowUpdate) {
-          this.nowUpdate = false;
+        if (this.messageEditMode) {
+          this.messageEditMode = false;
 
           this.socket.emit("editMessage", {
             id: this.selected_message_id,
@@ -1134,11 +1159,19 @@ export default {
     deleteMessage: function () {
       this.socket.emit("deleteMessage", { id: this.selected_message_id });
     },
-    editMessage : function() {
-      this.nowUpdate = false;
-      this.messageTextBox = this.messages[this.messages.findIndex((message) => message.id == this.selected_message_id)].message;
+    editMessage: function () {
+      this.messageEditMode = false;
+
+      this.messageTextBox =
+        this.messages[
+          this.messages.findIndex(
+            (message) => message.id == this.selected_message_id
+          )
+        ].message;
+
       document.getElementById("messageTextBox").focus();
-      this.nowUpdate = true;
+
+      this.messageEditMode = true;
     },
     deleteChat: function () {
       this.socket.emit("deleteChat", {
@@ -1458,6 +1491,23 @@ export default {
       this.messages = data;
       console.log("getMessages");
 
+      let lastMessageDate = "";
+
+      this.messages.forEach((message) => {
+        if (
+          lastMessageDate !=
+          this.moment.unix(message.sent_date).format("DD.MM.YYYY")
+        ) {
+          message.dateChip = true;
+
+          lastMessageDate = this.moment
+            .unix(message.sent_date)
+            .format("DD.MM.YYYY");
+        } else {
+          message.dateChip = false;
+        }
+      });
+
       if (!this.isMobile()) {
         document.getElementById("messageTextBox").focus();
       }
@@ -1624,6 +1674,9 @@ export default {
       if (value > 0) {
         this.view = "messages";
         this.messages = {};
+
+        this.messageEditMode = false;
+        this.messageTextBox = "";
 
         this.chat_user_id = this.chats[value - 1].user_id;
 
@@ -1801,6 +1854,7 @@ export default {
   padding: 5px 12px;
   margin-top: 10px;
   align-self: flex-end;
+  /* margin-left: auto; */
   border-radius: 1em 1em 0 1em;
 }
 
@@ -1814,6 +1868,7 @@ export default {
   padding: 5px 12px;
   margin-top: 10px;
   align-self: flex-start;
+  /* margin-right: auto; */
   border-radius: 1em 1em 1em 0;
 }
 

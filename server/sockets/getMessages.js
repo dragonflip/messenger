@@ -12,7 +12,7 @@ module.exports = (io, socket) => {
     moment.locale("uk");
 
     messages.forEach((message) => {
-      message.sent_date = moment.unix(message.sent_date).format("HH:mm");
+      // message.sent_date = moment.unix(message.sent_date).format("HH:mm");
 
       const decipher = crypto.createDecipheriv(
         "aes128",

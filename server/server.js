@@ -1,5 +1,5 @@
 // Info
-const version = "0.11.6";
+const VERSION = "0.12.5";
 
 // Modules
 const express = require("express");
@@ -104,7 +104,7 @@ io.on("connection", async (socket) => {
     }
   }
 
-  socket.emit("version", version);
+  socket.emit("version", VERSION);
 
   users++;
   io.emit("usersOnline", users);
