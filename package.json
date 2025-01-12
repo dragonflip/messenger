@@ -8,7 +8,5 @@
     "install": "cd ./client && npm i && cd .. && cd ./server && npm i",
     "serve": "cd ./client && npm run serve",
     "build": "cd ./client && npm run build"
-  },
-  "author": "",
-  "license": "ISC"
+  }
 }
