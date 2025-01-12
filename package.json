@@ -1,15 +1,14 @@
 {
-	"name": "messenger",
-	"version": "1.0.0",
-	"description": "",
-	"main": "server/server.js",
-	"scripts": {
-		"start": "node server/server.js",
-		"dev": "nodemon server/server.js",
-		"install": "cd client && npm i && cd.. && cd server && npm i",
-    "serve": "cd client && npm run serve",
-		"build": "cd client && npm run build"
-	},
-	"author": "",
-	"license": "ISC"
+  "name": "messenger",
+  "version": "1.0.0",
+  "main": "./server/server.js",
+  "scripts": {
+    "start": "node ./server/server.js",
+    "dev": "nodemon ./server/server.js",
+    "install": "cd ./client && npm i && cd .. && cd ./server && npm i",
+    "serve": "cd ./client && npm run serve",
+    "build": "cd ./client && npm run build"
+  },
+  "author": "",
+  "license": "ISC"
 }
